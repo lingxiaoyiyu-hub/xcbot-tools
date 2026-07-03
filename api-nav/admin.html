@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>公益导航后台管理 - 小乘工具箱</title>
+<style>
+:root {
+  --bg: #090d16;
+  --card: #131b2e;
+  --card-border: #1e293b;
+  --primary: #3b82f6;
+  --primary-hover: #2563eb;
+  --text: #f8fafc;
+  --text-muted: #64748b;
+  --success: #10b981;
+  --danger: #ef4444;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+header {
+  height: 56px;
+  border-bottom: 1px solid var(--card-border);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  background: rgba(9, 13, 22, 0.8);
+  backdrop-filter: blur(12px);
+  z-index: 10;
+}
+.logo {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}
+.header-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.nav-link {
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.2s;
+}
+.nav-link:hover {
+  color: var(--primary);
+}
+
+/* Main Layout */
+.container {
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 24px;
+  flex: 1;
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 24px;
+}
+
+@media (max-width: 900px) {
+  .container {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Card layout styles */
+.panel {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.panel-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  border-bottom: 1px solid var(--card-border);
+  padding-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Left panel site list */
+.site-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  max-height: 500px;
+}
+.list-item {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--card-border);
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+.list-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--primary);
+}
+.list-item.active {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: var(--primary);
+}
+.list-item-name {
+  font-size: 0.88rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.list-item-domain {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+/* Add / Edit Form */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.form-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #94a3b8;
+}
+.form-input, .form-textarea {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 10px 12px;
+  font-size: 0.88rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.form-input:focus, .form-textarea:focus {
+  border-color: var(--primary);
+}
+.form-checkbox-row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 4px 0;
+}
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+.checkbox-label input {
+  cursor: pointer;
+  accent-color: var(--primary);
+}
+
+/* Buttons */
+.btn-group {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+.btn {
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+}
+.btn-primary:hover {
+  background: var(--primary-hover);
+}
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+  border: 1px solid var(--card-border);
+}
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+.btn-danger {
+  background: var(--danger);
+  color: #fff;
+}
+.btn-danger:hover {
+  background: #dc2626;
+}
+
+/* GitHub Settings Panel */
+.sync-panel {
+  grid-column: 1 / -1;
+  background: rgba(16, 185, 129, 0.02);
+  border: 1px dashed var(--success);
+}
+.sync-panel.failure {
+  border-color: var(--danger);
+  background: rgba(239, 68, 68, 0.02);
+}
+.sync-row {
+  display: flex;
+  gap: 16px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+.sync-row .form-group {
+  flex: 1;
+  min-width: 200px;
+}
+
+/* Deploy Log / Status */
+.status-box {
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--card-border);
+  line-height: 1.5;
+  display: none;
+}
+</style>
+</head>
+<body>
+
+  <header>
+    <a href="index.html" class="logo">
+      <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+        <polyline points="2 17 12 22 22 17"></polyline>
+        <polyline points="2 12 12 17 22 12"></polyline>
+      </svg>
+      <span>公益站导航 - 后台管理</span>
+    </a>
+    <div class="header-actions">
+      <a href="index.html" class="nav-link">
+        返回导航页面
+      </a>
+      <a href="../" class="nav-link">
+        返回工具箱首页
+      </a>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Top GitHub Sync Settings -->
+    <div class="panel sync-panel" id="syncPanel">
+      <div class="panel-title" style="border-bottom:none;padding-bottom:0">
+        ☁️ GitHub 自动同步发布配置 (无服务器 CMS 方案)
+      </div>
+      <div class="sync-row">
+        <div class="form-group">
+          <label class="form-label">GitHub 个人访问令牌 (Token)</label>
+          <input type="password" id="githubToken" class="form-input" placeholder="输入 GitHub Personal Access Token (PAT)">
+        </div>
+        <div class="form-group">
+          <label class="form-label">GitHub 用户名</label>
+          <input type="text" id="githubUser" class="form-input" placeholder="例如: lingxiaoyiyu-hub">
+        </div>
+        <div class="form-group">
+          <label class="form-label">GitHub 仓库名称</label>
+          <input type="text" id="githubRepo" class="form-input" placeholder="例如: my-tools">
+        </div>
+        <div class="form-group" style="flex: 0; min-width: auto;">
+          <button class="btn btn-primary" onclick="saveConfig()">保存配置</button>
+        </div>
+      </div>
+      <div style="font-size: 0.74rem; color: var(--text-muted);">
+        ⚠️ 安全提示：您的 Token 会<b>保存在您本地浏览器的 LocalStorage 中</b>，不会上传至任何第三方服务器，100% 安全。
+      </div>
+    </div>
+
+    <!-- Left: Site List -->
+    <div class="panel">
+      <div class="panel-title">
+        <span>收录站点列表</span>
+        <button class="btn btn-secondary" style="padding: 4px 8px; font-size: 0.74rem" onclick="initNewForm()">+ 新增</button>
+      </div>
+      <div class="site-list" id="siteList">
+        <!-- Rendered list -->
+      </div>
+    </div>
+
+    <!-- Right: Edit Form -->
+    <div class="panel">
+      <div class="panel-title" id="formTitle">新增站点</div>
+      
+      <div class="form-group">
+        <label class="form-label">站点名称</label>
+        <input type="text" id="siteName" class="form-input" placeholder="例如: bizdecipher">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">站点域名</label>
+        <input type="text" id="siteDomain" class="form-input" placeholder="例如: bizdecipher.com">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">推广链接 / 跳转地址</label>
+        <input type="text" id="siteUrl" class="form-input" placeholder="输入带有推广码(aff)的注册链接">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">专区标签</label>
+        <div class="form-checkbox-row">
+          <label class="checkbox-label"><input type="checkbox" name="siteTag" value="签到"> 签到</label>
+          <label class="checkbox-label"><input type="checkbox" name="siteTag" value="生图"> 生图</label>
+          <label class="checkbox-label"><input type="checkbox" name="siteTag" value="稳定"> 稳定</label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">站点备注 / 额外说明</label>
+        <textarea id="siteDesc" class="form-textarea" rows="4" placeholder="【0703新增】说明注册赠送额度、签到福利等..."></textarea>
+      </div>
+
+      <div class="btn-group">
+        <button class="btn btn-primary" id="saveBtn" onclick="saveSite()">保存修改</button>
+        <button class="btn btn-danger" id="deleteBtn" style="display:none" onclick="deleteSite()">删除站点</button>
+        <button class="btn btn-secondary" onclick="initNewForm()">取消</button>
+      </div>
+
+      <hr style="border:none;border-top:1px solid var(--card-border);margin: 12px 0;">
+
+      <div class="panel-title">发布与备份</div>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="publishToGithub()" style="background: var(--success)">🚀 一键发布部署到 GitHub Pages</button>
+        <button class="btn btn-secondary" onclick="downloadBackup()">📥 本地下载 sites.json 备份</button>
+      </div>
+      
+      <!-- Sync logs -->
+      <div class="status-box" id="statusBox"></div>
+    </div>
+  </div>
+
+  <footer>
+    <p>© 2026 公益站导航. 所有配置均在浏览器本地处理，安全可靠。</p>
+  </footer>
+
+  <script>
+    let sites = [];
+    let currentId = null;
+
+    // Load credentials and local config
+    function loadConfig() {
+      document.getElementById('githubToken').value = localStorage.getItem('nav_git_token') || '';
+      document.getElementById('githubUser').value = localStorage.getItem('nav_git_user') || 'lingxiaoyiyu-hub';
+      document.getElementById('githubRepo').value = localStorage.getItem('nav_git_repo') || 'my-tools';
+    }
+
+    function saveConfig() {
+      const token = document.getElementById('githubToken').value.trim();
+      const user = document.getElementById('githubUser').value.trim();
+      const repo = document.getElementById('githubRepo').value.trim();
+
+      localStorage.setItem('nav_git_token', token);
+      localStorage.setItem('nav_git_user', user);
+      localStorage.setItem('nav_git_repo', repo);
+
+      alert("发布配置保存成功！");
+    }
+
+    // Load database
+    async function loadData() {
+      try {
+        const res = await fetch('sites.json');
+        sites = await res.json();
+        renderList();
+      } catch (err) {
+        showLog("无法读取 sites.json，将使用空白列表。", "error");
+      }
+    }
+
+    // Render list
+    function renderList() {
+      const list = document.getElementById('siteList');
+      list.innerHTML = sites.map(site => `
+        <div class="list-item ${currentId === site.id ? 'active' : ''}" onclick="selectSite('${site.id}')">
+          <div class="list-item-name">${escapeHtml(site.name)}</div>
+          <div class="list-item-domain">${escapeHtml(site.domain)}</div>
+        </div>
+      `).join('');
+    }
+
+    // Select site to edit
+    function selectSite(id) {
+      currentId = id;
+      renderList();
+      
+      const site = sites.find(s => s.id === id);
+      if (!site) return;
+
+      document.getElementById('formTitle').textContent = `编辑站点 - ${site.name}`;
+      document.getElementById('siteName').value = site.name;
+      document.getElementById('siteDomain').value = site.domain;
+      document.getElementById('siteUrl').value = site.url;
+      document.getElementById('siteDesc').value = site.description;
+      
+      document.querySelectorAll('input[name="siteTag"]').forEach(cb => {
+        cb.checked = site.tags.includes(cb.value);
+      });
+
+      document.getElementById('deleteBtn').style.display = 'block';
+    }
+
+    // Reset Form for New Item
+    function initNewForm() {
+      currentId = null;
+      renderList();
+      
+      document.getElementById('formTitle').textContent = "新增站点";
+      document.getElementById('siteName').value = "";
+      document.getElementById('siteDomain').value = "";
+      document.getElementById('siteUrl').value = "";
+      document.getElementById('siteDesc').value = "";
+      
+      document.querySelectorAll('input[name="siteTag"]').forEach(cb => {
+        cb.checked = false;
+      });
+
+      document.getElementById('deleteBtn').style.display = 'none';
+    }
+
+    // Save site locally
+    function saveSite() {
+      const name = document.getElementById('siteName').value.trim();
+      const domain = document.getElementById('siteDomain').value.trim();
+      const url = document.getElementById('siteUrl').value.trim();
+      const description = document.getElementById('siteDesc').value.trim();
+      
+      const tags = [];
+      document.querySelectorAll('input[name="siteTag"]:checked').forEach(cb => {
+        tags.push(cb.value);
+      });
+
+      if (!name || !domain || !url) {
+        alert("请完整填写名称、域名和跳转链接！");
+        return;
+      }
+
+      if (currentId) {
+        // Edit existing
+        const idx = sites.findIndex(s => s.id === currentId);
+        if (idx !== -1) {
+          sites[idx] = {
+            ...sites[idx],
+            name,
+            domain,
+            url,
+            description,
+            tags
+          };
+        }
+      } else {
+        // Add new
+        const newSite = {
+          id: String(Date.now()),
+          name,
+          domain,
+          url,
+          description,
+          tags,
+          date: new Date().toISOString().split('T')[0]
+        };
+        sites.push(newSite);
+      }
+
+      initNewForm();
+      renderList();
+      alert("本地修改已保存！请点击下方的“一键发布部署到 GitHub”使修改线上生效。");
+    }
+
+    // Delete site locally
+    function deleteSite() {
+      if (!currentId) return;
+      if (!confirm("确定要删除这个站点吗？")) return;
+
+      sites = sites.filter(s => s.id !== currentId);
+      initNewForm();
+      renderList();
+      alert("本地已删除！请点击下方的“一键发布部署到 GitHub”使修改线上生效。");
+    }
+
+    // Push/Publish to GitHub using REST API
+    async function publishToGithub() {
+      const token = localStorage.getItem('nav_git_token');
+      const owner = localStorage.getItem('nav_git_user');
+      const repo = localStorage.getItem('nav_git_repo');
+
+      if (!token || !owner || !repo) {
+        alert("请先在顶部配置好您的 GitHub Token, 用户名和仓库名！");
+        return;
+      }
+
+      showLog("正在连接 GitHub 并检索文件状态...", "info");
+
+      const path = 'api-nav/sites.json';
+      const fileUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+      const headers = {
+        'Authorization': `token ${token}`,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      };
+
+      try {
+        // 1. Get SHA of existing file
+        const getRes = await fetch(fileUrl, { headers });
+        let sha = "";
+        if (getRes.status === 200) {
+          const fileData = await getRes.json();
+          sha = fileData.sha;
+        }
+
+        // 2. Commit updated file
+        // Note: content must be base64 encoded
+        const jsonStr = JSON.stringify(sites, null, 2);
+        const encodedContent = btoa(unescape(encodeURIComponent(jsonStr)));
+
+        const putBody = {
+          message: "Update api-nav sites database via admin dashboard",
+          content: encodedContent,
+          sha: sha
+        };
+
+        showLog("正在推送最新数据提交至 GitHub 仓库...", "info");
+
+        const putRes = await fetch(fileUrl, {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify(putBody)
+        });
+
+        if (putRes.status === 200 || putRes.status === 210 || putRes.status === 201) {
+          showLog("🎉 成功！站点数据库 sites.json 已成功发布并提交！\nGitHub Actions 正在后台编译并部署静态网页（大约需要 35-45 秒），稍后刷新主页即可见！", "success");
+        } else {
+          const errData = await putRes.json();
+          showLog(`❌ 推送失败：${errData.message || '未知错误'}`, "error");
+        }
+      } catch (err) {
+        showLog(`❌ 连接 GitHub API 异常：${err.message}`, "error");
+      }
+    }
+
+    // Download backup file
+    function downloadBackup() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(sites, null, 2));
+      const dlAnchorElem = document.createElement('a');
+      dlAnchorElem.setAttribute("href", dataStr);
+      dlAnchorElem.setAttribute("download", "sites.json");
+      dlAnchorElem.click();
+    }
+
+    // Helper functions
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+
+    function showLog(msg, type) {
+      const box = document.getElementById('statusBox');
+      box.style.display = 'block';
+      box.textContent = msg;
+      
+      if (type === 'error') {
+        box.style.borderColor = 'var(--danger)';
+        box.style.color = 'var(--danger)';
+      } else if (type === 'success') {
+        box.style.borderColor = 'var(--success)';
+        box.style.color = 'var(--success)';
+      } else {
+        box.style.borderColor = 'var(--card-border)';
+        box.style.color = 'var(--text)';
+      }
+    }
+
+    // Init
+    window.onload = () => {
+      loadConfig();
+      loadData();
+    };
+  </script>
+</body>
+</html>

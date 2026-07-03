@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>公益站导航 - 小乘工具箱</title>
+<style>
+:root {
+  --bg: #090d16;
+  --card: #131b2e;
+  --card-border: #1e293b;
+  --primary: #3b82f6;
+  --primary-hover: #2563eb;
+  --text: #f8fafc;
+  --text-muted: #64748b;
+  --success: #10b981;
+  --danger: #ef4444;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+header {
+  height: 56px;
+  border-bottom: 1px solid var(--card-border);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  background: rgba(9, 13, 22, 0.8);
+  backdrop-filter: blur(12px);
+  z-index: 10;
+  position: sticky;
+  top: 0;
+}
+.logo {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}
+.header-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.nav-link {
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.2s;
+}
+.nav-link:hover {
+  color: var(--primary);
+}
+
+/* Main content */
+.container {
+  max-width: 1000px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 32px 24px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Info Box */
+.info-card {
+  background: linear-gradient(135deg, rgba(59,130,246,0.08) 0%, rgba(16,185,129,0.04) 100%);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  padding: 24px;
+}
+.info-title {
+  font-size: 1.4rem;
+  font-weight: 800;
+  margin-bottom: 8px;
+  background: linear-gradient(to right, #3b82f6, #10b981);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.info-desc {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+/* Control Row */
+.controls-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--card-border);
+  padding-bottom: 16px;
+}
+
+/* Search Box */
+.search-box {
+  position: relative;
+  max-width: 320px;
+  width: 100%;
+}
+.search-input {
+  width: 100%;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  color: var(--text);
+  border-radius: 99px;
+  padding: 8px 16px 8px 36px;
+  font-size: 0.88rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.search-input:focus {
+  border-color: var(--primary);
+}
+.search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+/* Filter Tags */
+.tags-filter {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.tag-btn {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--card-border);
+  color: var(--text-muted);
+  padding: 6px 14px;
+  border-radius: 99px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.tag-btn:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.06);
+}
+.tag-btn.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+/* Grid layout */
+.sites-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+/* Site Card */
+.site-card {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+  position: relative;
+}
+.site-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(59, 130, 246, 0.4);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+.site-name-area {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.site-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+.site-domain {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+}
+.card-tags {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.card-tag {
+  font-size: 0.65rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--primary);
+  border: 1.5px solid rgba(59, 130, 246, 0.2);
+  font-weight: 600;
+}
+
+.site-desc {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  line-height: 1.5;
+  flex: 1;
+}
+
+.card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+.latency-indicator {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.latency-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  display: inline-block;
+}
+.latency-dot.online {
+  background: var(--success);
+}
+.latency-dot.offline {
+  background: var(--danger);
+}
+
+.visit-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 0.78rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: 600;
+}
+.visit-btn:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+.test-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.test-btn:hover {
+  color: var(--primary);
+}
+
+/* Footer */
+footer {
+  padding: 24px;
+  text-align: center;
+  border-top: 1px solid var(--card-border);
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+</style>
+</head>
+<body>
+
+  <header>
+    <a href="../" class="logo">
+      <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+        <polyline points="2 17 12 22 22 17"></polyline>
+        <polyline points="2 12 12 17 22 12"></polyline>
+      </svg>
+      <span>公益站导航</span>
+    </a>
+    <div class="header-actions">
+      <a href="admin.html" class="nav-link">
+        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+        后台管理
+      </a>
+      <a href="../" class="nav-link">
+        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+          <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+        首页
+      </a>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Info Section -->
+    <div class="info-card">
+      <div class="info-title">公益站导航</div>
+      <div class="info-desc">
+        这里为您收录优质、免费、良心的 AI 公益中转平台与开发资源。收录的站点均经过日常使用稳定性筛选，使用请注意保护个人隐私和敏感数据。
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls-row">
+      <!-- Tag Filters -->
+      <div class="tags-filter" id="tagsFilter">
+        <button class="tag-btn active" data-tag="全部">全部</button>
+        <button class="tag-btn" data-tag="签到">签到</button>
+        <button class="tag-btn" data-tag="生图">生图</button>
+        <button class="tag-btn" data-tag="稳定">稳定</button>
+      </div>
+
+      <!-- Search Input -->
+      <div class="search-box">
+        <svg class="search-icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" id="searchInput" class="search-input" placeholder="搜索名称或域名...">
+      </div>
+    </div>
+
+    <!-- Grid -->
+    <div class="sites-grid" id="sitesGrid">
+      <!-- Dynamic rendering -->
+    </div>
+  </div>
+
+  <footer>
+    <p>© 2026 公益站导航. 所有收录信息均来自公开共享，本站不对任何收录中转站及其活动负责。</p>
+  </footer>
+
+  <script>
+    let allSites = [];
+    let activeTag = '全部';
+
+    // Fetch and load sites
+    async function loadSites() {
+      try {
+        const res = await fetch('sites.json');
+        allSites = await res.json();
+        renderSites();
+      } catch (err) {
+        console.error("加载站点数据失败: ", err);
+        document.getElementById('sitesGrid').innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--danger); padding: 40px;">数据文件 sites.json 加载失败，请检查或先进行后台配置发布。</div>';
+      }
+    }
+
+    // Render sites grid
+    function renderSites() {
+      const grid = document.getElementById('sitesGrid');
+      const searchQuery = document.getElementById('searchInput').value.toLowerCase();
+      
+      const filtered = allSites.filter(site => {
+        // Tag filtering
+        const matchesTag = activeTag === '全部' || site.tags.includes(activeTag);
+        // Search filtering
+        const matchesSearch = site.name.toLowerCase().includes(searchQuery) || site.domain.toLowerCase().includes(searchQuery);
+        return matchesTag && matchesSearch;
+      });
+
+      if (filtered.length === 0) {
+        grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 40px;">没有找到符合条件的站点。</div>';
+        return;
+      }
+
+      grid.innerHTML = filtered.map(site => `
+        <div class="site-card" data-id="${site.id}">
+          <div class="card-header">
+            <div class="site-name-area">
+              <span class="site-title">${escapeHtml(site.name)}</span>
+              <span class="site-domain">${escapeHtml(site.domain)}</span>
+            </div>
+            <div class="card-tags">
+              ${site.tags.map(t => `<span class="card-tag">${escapeHtml(t)}</span>`).join('')}
+            </div>
+          </div>
+          <div class="site-desc">
+            ${escapeHtml(site.description)}
+          </div>
+          <div class="card-footer">
+            <div class="latency-indicator" id="latency-${site.id}">
+              <span class="latency-dot"></span>
+              <span class="latency-text"><button class="test-btn" onclick="testPing('${site.id}', '${site.url}')">联通性测试</button></span>
+            </div>
+            <a href="${site.url}" target="_blank" class="visit-btn">打开链接</a>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Helper functions
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+
+    // Ping tester
+    async function testPing(id, url) {
+      const container = document.getElementById(`latency-${id}`);
+      if (!container) return;
+
+      container.innerHTML = `<span class="latency-dot"></span><span style="color: var(--text-muted)">测试中...</span>`;
+      
+      const start = Date.now();
+      try {
+        // Fetch with no-cors will reach the server even if CORS fails
+        // We use a timeout to prevent hanging forever
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 6000);
+        
+        await fetch(url, { 
+          mode: 'no-cors', 
+          cache: 'no-cache',
+          signal: controller.signal 
+        });
+        
+        clearTimeout(timeoutId);
+        const ms = Date.now() - start;
+        container.innerHTML = `
+          <span class="latency-dot online"></span>
+          <span style="color: var(--success)">在线 (${ms}ms)</span>
+        `;
+      } catch (err) {
+        container.innerHTML = `
+          <span class="latency-dot offline"></span>
+          <span style="color: var(--danger)">超时 / 离线</span>
+        `;
+      }
+    }
+
+    // Event listeners
+    document.getElementById('searchInput').addEventListener('input', renderSites);
+
+    document.querySelectorAll('#tagsFilter .tag-btn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        document.querySelectorAll('#tagsFilter .tag-btn').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        activeTag = e.target.dataset.tag;
+        renderSites();
+      });
+    });
+
+    // Start
+    window.onload = loadSites;
+  </script>
+</body>
+</html>
