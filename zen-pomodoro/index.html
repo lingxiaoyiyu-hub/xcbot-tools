@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>极简白噪音时钟 - 小乘工具箱</title>
+<title>噪音时钟 - 小乘工具箱</title>
 <style>
 :root {
   --bg: #090d16;
@@ -306,7 +306,7 @@ header {
         <circle cx="12" cy="12" r="10"></circle>
         <polyline points="12 6 12 12 16 14"></polyline>
       </svg>
-      <span>极简白噪音时钟</span>
+      <span>噪音时钟</span>
     </div>
     <a href="../" class="home-btn">
       <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
@@ -554,6 +554,7 @@ header {
     let audioCtx = null;
     let synths = {};
     let campfireTimer = null;
+    let rainTimer = null;
 
     function initAudio() {
       if (audioCtx) {
@@ -599,7 +600,7 @@ header {
 
       // --- Setup Synths ---
 
-      // 1. Rain (Brown noise lowpass + pink noise bandpass)
+      // 1. Rain (Brown noise lowpass + pink noise bandpass + synthesized raindrop clicks)
       const rainGain = audioCtx.createGain();
       rainGain.gain.setValueAtTime(0, audioCtx.currentTime);
       rainGain.connect(audioCtx.destination);
@@ -609,7 +610,7 @@ header {
       rainSrcB.loop = true;
       const rainFilterB = audioCtx.createBiquadFilter();
       rainFilterB.type = 'lowpass';
-      rainFilterB.frequency.value = 600;
+      rainFilterB.frequency.value = 220; // Deep storm rumble
       rainSrcB.connect(rainFilterB);
       rainFilterB.connect(rainGain);
       rainSrcB.start();
@@ -619,55 +620,69 @@ header {
       rainSrcP.loop = true;
       const rainFilterP = audioCtx.createBiquadFilter();
       rainFilterP.type = 'bandpass';
-      rainFilterP.frequency.value = 1100;
-      rainFilterP.Q.value = 1;
+      rainFilterP.frequency.value = 1000;
+      rainFilterP.Q.value = 1.0;
       rainSrcP.connect(rainFilterP);
       rainFilterP.connect(rainGain);
       rainSrcP.start();
 
       synths.rain = { gainNode: rainGain, targetVol: 0, isMuted: false };
 
-      // 2. Ocean (Brown noise modulated by slow LFO)
+      // 2. Ocean (Brown noise lowpass + pink noise lowpass, modulated by LFO)
       const oceanGain = audioCtx.createGain();
       oceanGain.gain.setValueAtTime(0, audioCtx.currentTime);
       oceanGain.connect(audioCtx.destination);
 
-      const oceanSrc = audioCtx.createBufferSource();
-      oceanSrc.buffer = brownBuffer;
-      oceanSrc.loop = true;
-      const oceanFilter = audioCtx.createBiquadFilter();
-      oceanFilter.type = 'lowpass';
-      oceanFilter.frequency.value = 350;
+      const oceanSrcB = audioCtx.createBufferSource();
+      oceanSrcB.buffer = brownBuffer;
+      oceanSrcB.loop = true;
+      const oceanFilterB = audioCtx.createBiquadFilter();
+      oceanFilterB.type = 'lowpass';
+      oceanFilterB.frequency.value = 250; // Deep wave base
       
-      const oceanMod = audioCtx.createGain();
-      oceanMod.gain.setValueAtTime(0.0, audioCtx.currentTime);
+      const oceanSrcP = audioCtx.createBufferSource();
+      oceanSrcP.buffer = pinkBuffer;
+      oceanSrcP.loop = true;
+      const oceanFilterP = audioCtx.createBiquadFilter();
+      oceanFilterP.type = 'lowpass';
+      oceanFilterP.frequency.value = 800; // Foam hiss
 
-      oceanSrc.connect(oceanFilter);
-      oceanFilter.connect(oceanMod);
-      oceanMod.connect(oceanGain);
-      oceanSrc.start();
+      const oceanModB = audioCtx.createGain();
+      oceanModB.gain.setValueAtTime(0.4, audioCtx.currentTime);
 
-      // Waves modulator (LFO at 0.08Hz = ~12.5 seconds per wave)
+      const oceanModP = audioCtx.createGain();
+      oceanModP.gain.setValueAtTime(0.3, audioCtx.currentTime);
+
+      oceanSrcB.connect(oceanFilterB);
+      oceanFilterB.connect(oceanModB);
+      oceanModB.connect(oceanGain);
+      oceanSrcB.start();
+
+      oceanSrcP.connect(oceanFilterP);
+      oceanFilterP.connect(oceanModP);
+      oceanModP.connect(oceanGain);
+      oceanSrcP.start();
+
+      // Waves modulator (LFO at 0.07Hz = ~14 seconds per wave cycle)
       const lfo = audioCtx.createOscillator();
       lfo.type = 'sine';
-      lfo.frequency.setValueAtTime(0.08, audioCtx.currentTime);
+      lfo.frequency.setValueAtTime(0.07, audioCtx.currentTime);
       
-      const lfoGain = audioCtx.createGain();
-      lfoGain.gain.value = 0.45;
+      const lfoGainB = audioCtx.createGain();
+      lfoGainB.gain.value = 0.38;
+      lfo.connect(lfoGainB);
+      lfoGainB.connect(oceanModB.gain);
+
+      const lfoGainP = audioCtx.createGain();
+      lfoGainP.gain.value = 0.28;
+      lfo.connect(lfoGainP);
+      lfoGainP.connect(oceanModP.gain);
       
-      lfo.connect(lfoGain);
-      lfoGain.connect(oceanMod.gain);
       lfo.start();
-      
-      // Base level of volume
-      const baseGain = audioCtx.createGain();
-      baseGain.gain.value = 0.15;
-      oceanFilter.connect(baseGain);
-      baseGain.connect(oceanGain);
 
       synths.ocean = { gainNode: oceanGain, targetVol: 0, isMuted: false };
 
-      // 3. Wind (Pink noise + filter frequency modulated by LFO)
+      // 3. Wind (Pink noise + bandpass with high Q modulated by LFO)
       const windGain = audioCtx.createGain();
       windGain.gain.setValueAtTime(0, audioCtx.currentTime);
       windGain.connect(audioCtx.destination);
@@ -678,26 +693,39 @@ header {
       
       const windFilter = audioCtx.createBiquadFilter();
       windFilter.type = 'bandpass';
-      windFilter.frequency.value = 400;
-      windFilter.Q.value = 3.5;
+      windFilter.frequency.value = 600; // Howling frequency center
+      windFilter.Q.value = 8.0; // High Q makes it whistle distinctly
+
+      const windMod = audioCtx.createGain();
+      windMod.gain.setValueAtTime(0.3, audioCtx.currentTime);
 
       windSrc.connect(windFilter);
-      windFilter.connect(windGain);
+      windFilter.connect(windMod);
+      windMod.connect(windGain);
       windSrc.start();
 
-      // Modulator for wind gusts (LFO at 0.05Hz = 20s cycle)
+      // Modulator for wind gusts (LFO at 0.06Hz)
       const windLfo = audioCtx.createOscillator();
       windLfo.type = 'sine';
-      windLfo.frequency.setValueAtTime(0.05, audioCtx.currentTime);
-      const windLfoGain = audioCtx.createGain();
-      windLfoGain.gain.value = 250; // Sweeps filter frequency up and down by 250Hz
-      windLfo.connect(windLfoGain);
-      windLfoGain.connect(windFilter.frequency);
+      windLfo.frequency.setValueAtTime(0.06, audioCtx.currentTime);
+      
+      // Modulate frequency
+      const windLfoFreqGain = audioCtx.createGain();
+      windLfoFreqGain.gain.value = 350;
+      windLfo.connect(windLfoFreqGain);
+      windLfoFreqGain.connect(windFilter.frequency);
+      
+      // Modulate volume in phase
+      const windLfoVolGain = audioCtx.createGain();
+      windLfoVolGain.gain.value = 0.25;
+      windLfo.connect(windLfoVolGain);
+      windLfoVolGain.connect(windMod.gain);
+      
       windLfo.start();
 
       synths.wind = { gainNode: windGain, targetVol: 0, isMuted: false };
 
-      // 4. Campfire (Brown noise rumble + synthesized random crackles)
+      // 4. Campfire (Brown noise rumble + synthesized random crackles & wood snaps)
       const campfireGain = audioCtx.createGain();
       campfireGain.gain.setValueAtTime(0, audioCtx.currentTime);
       campfireGain.connect(audioCtx.destination);
@@ -707,7 +735,7 @@ header {
       campSrc.loop = true;
       const campFilter = audioCtx.createBiquadFilter();
       campFilter.type = 'lowpass';
-      campFilter.frequency.value = 130;
+      campFilter.frequency.value = 100;
       campSrc.connect(campFilter);
       campFilter.connect(campfireGain);
       campSrc.start();
@@ -716,23 +744,33 @@ header {
     }
 
     function playCrackle(audioCtx, destNode) {
-      const duration = 0.01 + Math.random() * 0.03; // 10-40ms
+      const isSnap = Math.random() < 0.25; // 25% chance of wood snap
+      const duration = isSnap ? 0.04 : 0.01;
       const buffer = audioCtx.createBuffer(1, audioCtx.sampleRate * duration, audioCtx.sampleRate);
       const data = buffer.getChannelData(0);
+      
+      const decay = isSnap ? 80 : 350;
       for (let i = 0; i < data.length; i++) {
         const t = i / audioCtx.sampleRate;
-        data[i] = (Math.random() * 2 - 1) * Math.exp(-t * 180) * (Math.random() > 0.82 ? 1.0 : 0.35);
+        data[i] = (Math.random() * 2 - 1) * Math.exp(-t * decay);
       }
+      
       const source = audioCtx.createBufferSource();
       source.buffer = buffer;
       
       const filter = audioCtx.createBiquadFilter();
-      filter.type = 'highpass';
-      filter.frequency.value = 1600 + Math.random() * 2200;
+      if (isSnap) {
+        filter.type = 'bandpass';
+        filter.frequency.value = 800 + Math.random() * 600;
+        filter.Q.value = 6;
+      } else {
+        filter.type = 'highpass';
+        filter.frequency.value = 3000 + Math.random() * 2000;
+      }
       
       const gain = audioCtx.createGain();
-      // Only crackle when volume is up
-      gain.gain.value = (0.01 + Math.random() * 0.07) * synths.campfire.gainNode.gain.value;
+      const baseVolume = isSnap ? (0.08 + Math.random() * 0.12) : (0.01 + Math.random() * 0.04);
+      gain.gain.value = baseVolume * synths.campfire.gainNode.gain.value;
       
       source.connect(filter);
       filter.connect(gain);
@@ -744,8 +782,40 @@ header {
       if (synths.campfire && synths.campfire.targetVol > 0 && !synths.campfire.isMuted) {
         playCrackle(audioCtx, synths.campfire.gainNode);
       }
-      const next = 50 + Math.random() * 320;
+      const next = 60 + Math.random() * 300;
       campfireTimer = setTimeout(campfireCrackleLoop, next);
+    }
+
+    function playRaindrop(audioCtx, destNode) {
+      const duration = 0.005 + Math.random() * 0.015; // 5-20ms
+      const buffer = audioCtx.createBuffer(1, audioCtx.sampleRate * duration, audioCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < data.length; i++) {
+        const t = i / audioCtx.sampleRate;
+        data[i] = (Math.random() * 2 - 1) * Math.exp(-t * 400);
+      }
+      const source = audioCtx.createBufferSource();
+      source.buffer = buffer;
+      
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'highpass';
+      filter.frequency.value = 2500 + Math.random() * 2000;
+      
+      const gain = audioCtx.createGain();
+      gain.gain.value = (0.01 + Math.random() * 0.05) * synths.rain.gainNode.gain.value;
+      
+      source.connect(filter);
+      filter.connect(gain);
+      gain.connect(destNode);
+      source.start();
+    }
+
+    function rainCrackleLoop() {
+      if (synths.rain && synths.rain.targetVol > 0 && !synths.rain.isMuted) {
+        playRaindrop(audioCtx, synths.rain.gainNode);
+      }
+      const next = 20 + Math.random() * 80;
+      rainTimer = setTimeout(rainCrackleLoop, next);
     }
 
     // Mixer UI logic
@@ -768,6 +838,10 @@ header {
         // Start campfire loop if it's campfire
         if (soundKey === 'campfire' && !campfireTimer) {
           campfireCrackleLoop();
+        }
+        // Start rain loop if it's rain
+        if (soundKey === 'rain' && !rainTimer) {
+          rainCrackleLoop();
         }
       };
     });
@@ -792,6 +866,9 @@ header {
           btn.classList.add('active');
           if (soundKey === 'campfire' && !campfireTimer) {
             campfireCrackleLoop();
+          }
+          if (soundKey === 'rain' && !rainTimer) {
+            rainCrackleLoop();
           }
         }
         updateVolume(soundKey);
