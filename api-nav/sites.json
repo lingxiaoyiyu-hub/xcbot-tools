@@ -3,18 +3,5 @@
     "enabled": false,
     "text": ""
   },
-  "sites": [
-    {
-      "id": "3",
-      "name": "tokenshub",
-      "domain": "api.tokenshub.site",
-      "url": "https://api.tokenshub.site/register?aff=8LNYLP3XM9AG",
-      "description": "速度快，响应稳定，加群可额外领取20刀体验额度，适合重度开发测试使用。",
-      "tags": [
-        "生图",
-        "稳定"
-      ],
-      "date": "2026-07-01"
-    }
-  ]
+  "sites": []
 }
