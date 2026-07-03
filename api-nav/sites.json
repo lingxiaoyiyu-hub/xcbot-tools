@@ -3,5 +3,30 @@
     "enabled": false,
     "text": ""
   },
-  "sites": []
+  "sites": [
+    {
+      "id": "1",
+      "name": "bizdecipher",
+      "domain": "bizdecipher.com",
+      "url": "https://bizdecipher.com/register?aff=GDRW8GCK5RRK",
+      "description": "注册送30积分2倍率，有签到每天10+积分。建议使用邮箱注册，稳定体验。",
+      "tags": [
+        "签到",
+        "生图"
+      ],
+      "date": "2026-07-03"
+    },
+    {
+      "id": "2",
+      "name": "发财API",
+      "domain": "api.dali2897.com",
+      "url": "https://api.dali2897.com/register?aff=SArP",
+      "description": "注册有2元余额，每日签到送额度，连续签到送更多。Plus倍率0.07x，Pro倍率0.18x。",
+      "tags": [
+        "签到",
+        "生图"
+      ],
+      "date": "2026-07-03"
+    }
+  ]
 }
