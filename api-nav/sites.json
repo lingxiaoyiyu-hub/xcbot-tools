@@ -5,18 +5,6 @@
   },
   "sites": [
     {
-      "id": "1",
-      "name": "bizdecipher",
-      "domain": "bizdecipher.com",
-      "url": "https://bizdecipher.com/register?aff=GDRW8GCK5RRK",
-      "description": "注册送30积分2倍率，有签到每天10+积分。建议使用邮箱注册，稳定体验。",
-      "tags": [
-        "签到",
-        "生图"
-      ],
-      "date": "2026-07-03"
-    },
-    {
       "id": "2",
       "name": "发财API",
       "domain": "api.dali2897.com",
