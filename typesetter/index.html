@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>排版助手 - 小乘工具箱</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC',sans-serif;
+  height:100vh;display:flex;flex-direction:column;overflow:hidden;background:#fff;
+}
+
+/* ── Header ── */
+header{
+  height:48px;background:#1c1917;
+  display:flex;align-items:center;padding:0 20px;
+  flex-shrink:0;border-bottom:1px solid rgba(255,255,255,.06);
+}
+.logo{color:#f5f5f4;font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px;}
+.logo-icon{width:26px;height:26px;background:#d97706;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;}
+.home-btn:hover{color:#f5f5f4 !important;}
+
+/* ── Action bar ── */
+.actionbar{
+  height:46px;background:#faf9f7;border-bottom:1px solid #e7e5e4;
+  display:flex;align-items:center;padding:0 16px;gap:3px;
+  flex-shrink:0;overflow-x:auto;
+}
+.actionbar::-webkit-scrollbar{display:none;}
+.btn{
+  height:30px;padding:0 13px;border-radius:7px;
+  border:1px solid transparent;background:transparent;
+  color:#44403c;font-size:13px;font-weight:500;
+  cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;
+  transition:all .15s;
+}
+.btn:hover{background:#e7e5e4;border-color:#d6d3d1;}
+.btn.primary{background:#d97706;color:#fff;}
+.btn.primary:hover{background:#b45309;}
+.btn.ghost{color:#dc2626;}
+.btn.ghost:hover{background:#fef2f2;border-color:#fecaca;}
+.bsep{width:1px;height:18px;background:#d6d3d1;margin:0 5px;flex-shrink:0;}
+
+/* ── Editor ── */
+.editor-wrap{flex:1;overflow-y:auto;background:#fff;}
+.editor-wrap::-webkit-scrollbar{width:6px;}
+.editor-wrap::-webkit-scrollbar-thumb{background:#d6d3d1;border-radius:3px;}
+#editor{
+  width:100%;max-width:780px;min-height:100%;
+  margin:0 auto;padding:44px 56px;
+  outline:none;
+  font-family:'PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;
+  font-size:16px;line-height:1.85;color:#333;
+  word-break:break-word;
+}
+#editor:empty::before{content:attr(data-ph);color:#c4b5a5;pointer-events:none;display:block;}
+#editor h1{font-size:24px;font-weight:700;margin:.9em 0 .4em;line-height:1.3;}
+#editor h2{font-size:20px;font-weight:700;margin:.9em 0 .35em;line-height:1.35;}
+#editor h3{font-size:17px;font-weight:700;margin:.8em 0 .3em;line-height:1.4;}
+#editor p{margin-bottom:.8em;}
+#editor ul,#editor ol{padding-left:1.6em;margin-bottom:.8em;}
+#editor li{margin-bottom:.3em;}
+#editor blockquote{border-left:3px solid #d97706;padding:8px 14px;background:#fef9ec;margin:.8em 0;border-radius:0 6px 6px 0;font-style:italic;color:#57534e;}
+#editor hr{border:none;border-top:1px solid #e7e5e4;margin:1.2em 0;}
+#editor a{color:#d97706;}
+#editor mark{background:#fef08a;border-radius:2px;padding:0 1px;}
+
+/* ── Status bar ── */
+.statusbar{
+  height:28px;background:#1c1917;
+  display:flex;align-items:center;padding:0 16px;gap:16px;flex-shrink:0;
+}
+.stat{font-size:11px;color:#78716c;}
+
+/* ── Toast ── */
+.toast{
+  position:fixed;bottom:38px;left:50%;transform:translateX(-50%) translateY(8px);
+  background:#1c1917;color:#e5e5e5;
+  padding:7px 16px;border-radius:8px;font-size:13px;font-weight:500;
+  box-shadow:0 4px 16px rgba(0,0,0,.3);
+  opacity:0;transition:opacity .18s,transform .18s;pointer-events:none;white-space:nowrap;z-index:100;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ── Word count modal ── */
+.modal-bg{
+  position:fixed;inset:0;background:rgba(0,0,0,.35);
+  display:flex;align-items:center;justify-content:center;
+  z-index:200;opacity:0;transition:opacity .18s;pointer-events:none;
+}
+.modal-bg.show{opacity:1;pointer-events:auto;}
+.modal{
+  background:#fff;border-radius:14px;padding:24px 28px;min-width:270px;
+  box-shadow:0 8px 32px rgba(0,0,0,.15);transform:scale(.97);transition:transform .18s;
+}
+.modal-bg.show .modal{transform:scale(1);}
+.modal h3{font-size:15px;font-weight:700;color:#1c1917;margin-bottom:16px;}
+.modal-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #f5f4ef;font-size:13.5px;}
+.modal-row:last-of-type{border-bottom:none;}
+.modal-row .lbl{color:#78716c;}
+.modal-row .val{font-weight:600;color:#1c1917;}
+.modal-close{margin-top:16px;width:100%;height:32px;background:#f5f4ef;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit;color:#57534e;transition:background .15s;}
+.modal-close:hover{background:#e7e5e4;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">✦</div>
+    排版助手
+  </div>
+  <a href="../" class="home-btn" style="margin-left: auto; color: #a8a29e; font-size: 13px; text-decoration: none; display: flex; align-items: center; gap: 4px; transition: color 0.15s;">
+    <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+      <polyline points="9 22 9 12 15 12 15 22"></polyline>
+    </svg>
+    返回工具箱首页
+  </a>
+</header>
+
+<div class="actionbar">
+  <button class="btn" onclick="clearHTML()"     title="去除 HTML 标签，保留纯文本内容">清除 HTML</button>
+  <div class="bsep"></div>
+  <button class="btn primary" onclick="autoFmt()" title="标点替换 + 清理空行 + 整理空格">一键排版</button>
+  <button class="btn" onclick="addBlankLines()" title="在每个段落之间插入一个空行">添加空行</button>
+  <button class="btn" onclick="replPunct()"     title="将英文标点批量替换为中文标点">替换标点</button>
+  <div class="bsep"></div>
+  <button class="btn" onclick="checkTypos()"    title="标记疑似重复或异常的字符">检查错别字</button>
+  <button class="btn" onclick="toTraditional()" title="将简体汉字转换为繁体汉字">简 → 繁</button>
+  <div class="bsep"></div>
+  <button class="btn" onclick="showWordCount()" title="查看详细字数统计">统计字数</button>
+  <button class="btn" onclick="copyContent()"   title="复制为纯文本">复制</button>
+  <button class="btn ghost" onclick="clearAll()" title="清空编辑器">清空</button>
+</div>
+
+<div class="editor-wrap">
+  <div id="editor" contenteditable="true" spellcheck="false"
+       data-ph="在这里粘贴或输入内容，然后使用上方工具整理排版…"></div>
+</div>
+
+<div class="statusbar">
+  <span class="stat" id="stChars">字数：0</span>
+  <span class="stat" id="stParas">段落：0</span>
+</div>
+
+<!-- 字数统计弹窗 -->
+<div class="modal-bg" id="modalBg" onclick="closeModal(event)">
+  <div class="modal">
+    <h3>字数统计</h3>
+    <div class="modal-row"><span class="lbl">总字符数</span><span class="val" id="wcTotal">0</span></div>
+    <div class="modal-row"><span class="lbl">中文字符</span><span class="val" id="wcCN">0</span></div>
+    <div class="modal-row"><span class="lbl">英文单词</span><span class="val" id="wcEN">0</span></div>
+    <div class="modal-row"><span class="lbl">标点符号</span><span class="val" id="wcPunct">0</span></div>
+    <div class="modal-row"><span class="lbl">段落数</span><span class="val" id="wcParas">0</span></div>
+    <div class="modal-row"><span class="lbl">预计阅读</span><span class="val" id="wcRead">—</span></div>
+    <button class="modal-close" onclick="closeModal()">关闭</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Toast ────────────────────────────────────────────────
+let _tt;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(_tt);
+  _tt = setTimeout(() => el.classList.remove('show'), 2400);
+}
+
+// ── Stats ────────────────────────────────────────────────
+function updateStats() {
+  const txt = document.getElementById('editor').innerText || '';
+  document.getElementById('stChars').textContent = '字数：' + txt.replace(/\s/g, '').length;
+  document.getElementById('stParas').textContent = '段落：' +
+    document.querySelectorAll('#editor p,#editor h1,#editor h2,#editor h3,#editor li').length;
+}
+
+// ── 工具：遍历文本节点 ────────────────────────────────────
+function textNodes(root) {
+  const nodes = [], w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  let n; while ((n = w.nextNode())) nodes.push(n);
+  return nodes;
+}
+
+// ── 1. 清除 HTML ─────────────────────────────────────────
+function clearHTML() {
+  const editor = document.getElementById('editor');
+  const lines = (editor.innerText || '').split('\n').map(l => l.trim()).filter(Boolean);
+  if (!lines.length) { toast('内容为空'); return; }
+  editor.innerHTML = lines.map(l => `<p>${esc(l)}</p>`).join('');
+  updateStats();
+  toast('已清除 HTML 标签，内容转为纯文本段落');
+}
+function esc(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── 2. 一键排版 ──────────────────────────────────────────
+function autoFmt() {
+  replPunct(true);
+
+  const editor = document.getElementById('editor');
+
+  // 清理段落首尾空白
+  textNodes(editor).forEach(n => {
+    const p = n.parentElement;
+    if (p && /^(P|DIV|H[1-6]|LI|BLOCKQUOTE)$/.test(p.tagName))
+      n.textContent = n.textContent.replace(/^[\s ]+|[\s ]+$/g, '');
+  });
+
+  // 删除连续多余空段落（保留最多 1 个）
+  let prevEmpty = false;
+  [...editor.children].forEach(el => {
+    const empty = !el.textContent.trim() || el.innerHTML.trim() === '<br>';
+    if (empty && prevEmpty) el.remove();
+    prevEmpty = empty;
+  });
+
+  // 清理连续空格
+  textNodes(editor).forEach(n => {
+    n.textContent = n.textContent.replace(/[ \t]{2,}/g, ' ');
+  });
+
+  updateStats();
+  toast('一键排版完成：标点替换 · 清理空行 · 整理空格');
+}
+
+// ── 3. 添加空行 ──────────────────────────────────────────
+function addBlankLines() {
+  const editor = document.getElementById('editor');
+  const children = [...editor.children];
+  let added = 0;
+  for (let i = children.length - 1; i > 0; i--) {
+    const isEmpty = el => !el.textContent.trim() || el.innerHTML.trim() === '<br>';
+    if (!isEmpty(children[i]) && !isEmpty(children[i - 1])) {
+      const blank = document.createElement('p');
+      blank.innerHTML = '<br>';
+      editor.insertBefore(blank, children[i]);
+      added++;
+    }
+  }
+  updateStats();
+  toast(added > 0 ? `已在 ${added} 处段落间插入空行` : '段落间已有空行，无需添加');
+}
+
+// ── 4. 替换标点 ──────────────────────────────────────────
+function replPunct(silent) {
+  const editor = document.getElementById('editor');
+  // 先清除旧高亮，避免干扰文本节点
+  editor.querySelectorAll('mark').forEach(m => m.replaceWith(document.createTextNode(m.textContent)));
+
+  let changed = 0;
+  textNodes(editor).forEach(node => {
+    let t = node.textContent, orig = t;
+    t = t.replace(/\.{3,}/g, '……');
+    t = t.replace(/,/g, '，');
+    t = t.replace(/(?<!\d)\.(?!\d)/g, '。');
+    t = t.replace(/!/g, '！');
+    t = t.replace(/\?/g, '？');
+    t = t.replace(/:/g, '：');
+    t = t.replace(/;/g, '；');
+    t = t.replace(/\(/g, '（');
+    t = t.replace(/\)/g, '）');
+    t = t.replace(/\[/g, '【');
+    t = t.replace(/\]/g, '】');
+    let dq = 0; t = t.replace(/"/g, () => dq++ % 2 === 0 ? '“' : '”');
+    let sq = 0; t = t.replace(/'/g, () => sq++ % 2 === 0 ? '‘' : '’');
+    if (t !== orig) { node.textContent = t; changed++; }
+  });
+
+  updateStats();
+  if (!silent) toast(changed > 0 ? `替换完成，共 ${changed} 处` : '没有需要替换的英文标点');
+}
+
+// ── 5. 检查错别字 ────────────────────────────────────────
+// 检查规则：连续重复字（3+）、常见混淆对
+const CONFUSE = [
+  [/在见/g, '再见'],  [/在次/g, '再次'],  [/在三/g, '再三'],
+  [/在来/g, '再来'],  [/在也/g, '再也'],
+  [/已后/g, '以后'],  [/己经/g, '已经'],
+  [/必竟/g, '毕竟'],  [/带领/g, '带领'],
+];
+function checkTypos() {
+  const editor = document.getElementById('editor');
+  editor.querySelectorAll('mark').forEach(m => m.replaceWith(document.createTextNode(m.textContent)));
+
+  let flagged = 0;
+
+  textNodes(editor).forEach(node => {
+    let t = node.textContent;
+    // 找出所有要高亮的区间
+    const ranges = [];
+
+    // 连续重复字（同一汉字出现 3+ 次）
+    [...t.matchAll(/([一-龥])\1{2,}/g)].forEach(m => {
+      ranges.push([m.index, m.index + m[0].length, '疑似重复：' + m[0]]);
+    });
+
+    // 常见混淆词
+    CONFUSE.forEach(([re, suggest]) => {
+      [...t.matchAll(re)].forEach(m => {
+        ranges.push([m.index, m.index + m[0].length, `疑似错字，建议改为「${suggest}」`]);
+      });
+    });
+
+    if (!ranges.length) return;
+    flagged += ranges.length;
+
+    // 去重 + 排序
+    ranges.sort((a, b) => a[0] - b[0]);
+    const frag = document.createDocumentFragment();
+    let last = 0;
+    ranges.forEach(([start, end, tip]) => {
+      if (start < last) return; // 跳过重叠
+      if (start > last) frag.appendChild(document.createTextNode(t.slice(last, start)));
+      const mark = document.createElement('mark');
+      mark.title = tip; mark.textContent = t.slice(start, end);
+      frag.appendChild(mark);
+      last = end;
+    });
+    if (last < t.length) frag.appendChild(document.createTextNode(t.slice(last)));
+    node.parentNode.replaceChild(frag, node);
+  });
+
+  toast(flagged > 0 ? `发现 ${flagged} 处疑似问题（黄色高亮）` : '未发现明显错误');
+}
+
+// ── 6. 简 → 繁 ───────────────────────────────────────────
+const S2T={"爱":"愛","备":"備","笔":"筆","边":"邊","标":"標","宝":"寶","报":"報","变":"變","补":"補","罢":"罷","币":"幣","毕":"畢","办":"辦","闭":"閉","宾":"賓","残":"殘","车":"車","产":"產","场":"場","长":"長","厂":"廠","称":"稱","传":"傳","从":"從","尝":"嘗","层":"層","词":"詞","处":"處","册":"冊","参":"參","财":"財","仓":"倉","测":"測","触":"觸","础":"礎","达":"達","带":"帶","当":"當","导":"導","灯":"燈","点":"點","电":"電","东":"東","动":"動","读":"讀","对":"對","独":"獨","断":"斷","队":"隊","调":"調","担":"擔","档":"檔","单":"單","恶":"惡","发":"發","丰":"豐","飞":"飛","风":"風","负":"負","费":"費","废":"廢","妇":"婦","盖":"蓋","给":"給","个":"個","广":"廣","国":"國","观":"觀","贵":"貴","归":"歸","过":"過","干":"幹","钢":"鋼","赶":"趕","馆":"館","还":"還","汉":"漢","号":"號","红":"紅","后":"後","华":"華","画":"畫","欢":"歡","换":"換","话":"話","获":"獲","护":"護","怀":"懷","汇":"匯","坏":"壞","际":"際","机":"機","将":"將","节":"節","进":"進","惊":"驚","决":"決","举":"舉","绝":"絕","净":"淨","鸡":"雞","积":"積","极":"極","间":"間","见":"見","结":"結","尽":"盡","经":"經","价":"價","开":"開","来":"來","乐":"樂","类":"類","里":"裡","历":"歷","连":"連","练":"練","两":"兩","临":"臨","龙":"龍","楼":"樓","乱":"亂","丽":"麗","领":"領","链":"鏈","离":"離","联":"聯","脸":"臉","恋":"戀","厘":"釐","粮":"糧","灵":"靈","刘":"劉","录":"錄","论":"論","么":"麼","买":"買","卖":"賣","妈":"媽","马":"馬","吗":"嗎","门":"門","满":"滿","没":"沒","梦":"夢","灭":"滅","庙":"廟","难":"難","鸟":"鳥","农":"農","脑":"腦","宁":"寧","内":"內","区":"區","权":"權","确":"確","钱":"錢","亲":"親","气":"氣","齐":"齊","热":"熱","认":"認","让":"讓","时":"時","书":"書","数":"數","说":"說","随":"隨","声":"聲","试":"試","谁":"誰","岁":"歲","属":"屬","师":"師","实":"實","胜":"勝","识":"識","势":"勢","树":"樹","双":"雙","损":"損","孙":"孫","台":"臺","头":"頭","团":"團","图":"圖","铁":"鐵","题":"題","统":"統","体":"體","态":"態","听":"聽","万":"萬","网":"網","问":"問","务":"務","无":"無","为":"為","围":"圍","现":"現","线":"線","写":"寫","响":"響","显":"顯","险":"險","县":"縣","压":"壓","样":"樣","阳":"陽","业":"業","义":"義","应":"應","语":"語","远":"遠","运":"運","阴":"陰","异":"異","艺":"藝","忆":"憶","议":"音","医":"醫","药":"藥","页":"頁","银":"銀","战":"戰","这":"這","证":"證","种":"種","专":"專","状":"狀","准":"準","总":"總","组":"組","资":"資","众":"眾","择":"擇","责":"責","则":"則","张":"張","质":"質","职":"職","只":"隻","纸":"紙","终":"終","转":"轉","装":"裝","仅":"僅","继":"繼","际":"際","缘":"緣","阶":"階","块":"塊","签":"簽","卫":"衛","维":"維","斗":"鬥","坚":"堅","肤":"膚","阵":"陣","针":"針","选":"選","经":"經","际":"際","联":"聯","脸":"臉","损":"損","缺":"缺","顾":"顧","拥":"擁","护":"護","汇":"匯","赋":"賦","预":"預","构":"構","获":"獲","须":"須","势":"勢","维":"維","续":"續","势":"勢","识":"識","胜":"勝","认":"認","议":"議","让":"讓","话":"話","换":"換","欢":"歡","报":"報","图":"圖","题":"題","统":"統","态":"態"};
+
+function toTraditional() {
+  const editor = document.getElementById('editor');
+  let changed = 0;
+  textNodes(editor).forEach(node => {
+    const orig = node.textContent;
+    let t = '';
+    for (const ch of orig) t += S2T[ch] || ch;
+    if (t !== orig) { node.textContent = t; changed++; }
+  });
+  toast(changed > 0 ? `转换完成，共处理 ${changed} 处文本节点` : '未找到可转换的简体字');
+}
+
+// ── 7. 统计字数 ──────────────────────────────────────────
+function showWordCount() {
+  const txt = document.getElementById('editor').innerText || '';
+  const cn    = (txt.match(/[一-龥]/g) || []).length;
+  const en    = (txt.match(/\b[a-zA-Z]+\b/g)   || []).length;
+  const punct = (txt.match(/[，。！？：；""''（）【】…、—《》,.!?:;]/g) || []).length;
+  const total = txt.replace(/\s/g, '').length;
+  const paras = document.querySelectorAll('#editor p,#editor h1,#editor h2,#editor h3').length;
+  const mins  = cn < 100 ? '不足 1 分钟' : Math.round(cn / 300) + ' 分钟';
+
+  document.getElementById('wcTotal').textContent = total;
+  document.getElementById('wcCN').textContent    = cn;
+  document.getElementById('wcEN').textContent    = en + ' 词';
+  document.getElementById('wcPunct').textContent = punct;
+  document.getElementById('wcParas').textContent = paras;
+  document.getElementById('wcRead').textContent  = mins;
+  document.getElementById('modalBg').classList.add('show');
+}
+function closeModal(e) {
+  if (!e || e.target === document.getElementById('modalBg'))
+    document.getElementById('modalBg').classList.remove('show');
+}
+
+// ── 8. 复制 ──────────────────────────────────────────────
+async function copyContent() {
+  const text = document.getElementById('editor').innerText || '';
+  if (!text.trim()) { toast('内容为空，无法复制'); return; }
+  try { await navigator.clipboard.writeText(text); }
+  catch {
+    const el = Object.assign(document.createElement('textarea'), {value: text});
+    document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el);
+  }
+  toast('已复制纯文本 ✓');
+}
+
+// ── 9. 清空 ───────────────────────────────────────────────
+function clearAll() {
+  if (!document.getElementById('editor').innerText.trim() || confirm('清空所有内容？')) {
+    document.getElementById('editor').innerHTML = '';
+    updateStats();
+  }
+}
+
+// ── Editor events ─────────────────────────────────────────
+const ed = document.getElementById('editor');
+ed.addEventListener('input', updateStats);
+ed.addEventListener('paste', e => {
+  e.preventDefault();
+  document.execCommand('insertText', false, (e.clipboardData || window.clipboardData).getData('text/plain'));
+});
+
+updateStats();
+</script>
+</body>
+</html>
