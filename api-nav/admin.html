@@ -301,20 +301,30 @@ const ADMIN_HASH = 'aaffebecec560fec66e75f24062224ffa4e07696d2ae9a1fee3707c3f8fd
 async function checkLogin() {
   const pw = document.getElementById('loginInput').value;
   if (!pw) return;
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
-  const hex = [...new Uint8Array(buf)].map(x => x.toString(16).padStart(2, '0')).join('');
-  if (hex === ADMIN_HASH) {
-    document.getElementById('loginOverlay').style.display = 'none';
-    document.getElementById('adminContent').style.display = 'flex';
-    loadConfig();
-    loadData();
-    loadFeedback();
-  } else {
-    const el = document.getElementById('loginErr');
-    el.textContent = '密码错误，请重试。';
+  const errEl = document.getElementById('loginErr');
+  try {
+    if (!window.crypto || !window.crypto.subtle) {
+      throw new Error('当前环境不支持加密接口（crypto.subtle）。请通过 HTTPS 访问本页，例如 https://xcbot.cyou/api-nav/admin.html');
+    }
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
+    const hex = [...new Uint8Array(buf)].map(x => x.toString(16).padStart(2, '0')).join('');
+    if (hex === ADMIN_HASH) {
+      document.getElementById('loginOverlay').style.display = 'none';
+      document.getElementById('adminContent').style.display = 'flex';
+      loadConfig();
+      loadData();
+      loadFeedback();
+    } else {
+      errEl.textContent = '密码错误，请重试。';
+      document.getElementById('loginInput').value = '';
+      document.getElementById('loginInput').focus();
+      setTimeout(() => { if (errEl) errEl.textContent = ''; }, 3000);
+    }
+  } catch (e) {
+    console.error('checkLogin error:', e);
+    errEl.textContent = '登录失败：' + (e && e.message ? e.message : String(e));
     document.getElementById('loginInput').value = '';
     document.getElementById('loginInput').focus();
-    setTimeout(() => el.textContent = '', 3000);
   }
 }
 
