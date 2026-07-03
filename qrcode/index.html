@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>二维码美化助手 - 小乘工具箱</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: 'Inter', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 50%, #f0f9ff 100%);
+    color: #0f172a;
+    line-height: 1.5;
+  }
+  .app {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px 16px 40px;
+  }
+  .top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+  }
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: #059669;
+    font-weight: 700;
+    font-size: 1.05rem;
+  }
+  .brand:hover { opacity: 0.9; }
+  .pill {
+    font-size: 0.75rem;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.7);
+    border: 1px solid rgba(5,150,105,0.25);
+    color: #047857;
+    backdrop-filter: blur(10px);
+  }
+  .card {
+    background: rgba(255,255,255,0.82);
+    backdrop-filter: blur(18px);
+    border: 1px solid rgba(226,232,240,0.9);
+    border-radius: 18px;
+    padding: 22px;
+    box-shadow: 0 10px 30px rgba(2,6,23,0.06);
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: 1.05fr 0.95fr;
+    gap: 18px;
+    align-items: start;
+  }
+  @media (max-width: 860px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+  .field { margin-bottom: 14px; }
+  label {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 8px;
+  }
+  input[type="text"], textarea, select {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    background: #ffffff;
+    font: inherit;
+    color: #0f172a;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  input[type="text"]:focus, textarea:focus, select:focus {
+    border-color: #059669;
+    box-shadow: 0 0 0 3px rgba(5,150,105,0.12);
+  }
+  textarea { resize: vertical; min-height: 96px; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .color-wrap { display: flex; align-items: center; gap: 10px; }
+  input[type="color"] {
+    width: 42px; height: 42px; padding: 0; border-radius: 12px;
+    border: 1px solid #e5e7eb; background: #fff; cursor: pointer;
+  }
+  .file-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: 1px dashed #cbd5e1;
+    background: #f8fafc;
+    color: #334155;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+  .file-btn:hover { border-color: #059669; color: #047857; background: #f0fdf4; }
+  .file-btn input { display: none; }
+  .preview {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #334155;
+    font-size: 0.82rem;
+  }
+  .preview img { width: 32px; height: 32px; border-radius: 8px; object-fit: cover; border: 1px solid #e5e7eb; }
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
+  button.primary {
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: none;
+    background: linear-gradient(135deg, #059669, #047857);
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(5,150,105,0.25);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  button.primary:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(5,150,105,0.3); }
+  button.secondary {
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    background: #ffffff;
+    color: #0f172a;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  button.secondary:hover { border-color: #059669; color: #047857; }
+  .preview-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 18px;
+    min-height: 320px;
+    position: relative;
+  }
+  #qrCanvas {
+    max-width: 100%;
+    height: auto;
+    border-radius: 16px;
+    background: #ffffff;
+    padding: 16px;
+    box-shadow: 0 10px 30px rgba(2,6,23,0.08);
+    transition: transform 0.3s;
+  }
+  .hint {
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-top: 4px;
+  }
+  .empty {
+    color: #94a3b8;
+    font-size: 0.9rem;
+    text-align: center;
+  }
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    transform: translateX(-50%) translateY(20px);
+    background: #0f172a;
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s, transform 0.3s;
+    z-index: 100;
+    box-shadow: 0 10px 30px rgba(2,6,23,0.25);
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  footer { text-align: center; margin-top: 24px; color: #64748b; font-size: 0.78rem; }
+  .size-options { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip {
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    cursor: pointer;
+    font-weight: 500;
+    color: #334155;
+    transition: all 0.2s;
+  }
+  .chip:hover { border-color: #059669; color: #047857; }
+  .chip.active { background: #059669; color: white; border-color: #059669; }
+</style>
+</head>
+<body>
+  <div class="app">
+    <div class="top-bar">
+      <a class="brand" href="/">
+        <svg viewBox="0 0 24 24" width="22" height="22" stroke="#059669" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+          <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+        </svg>
+        小乘工具箱
+      </a>
+      <div class="pill">纯本地运行 · 不上传任何内容</div>
+    </div>
+
+    <div class="card">
+      <div class="grid">
+        <div>
+          <div class="field">
+            <label>内容</label>
+            <textarea id="text" placeholder="输入网址、文字，或粘贴任意文本...">https://xcbot.cyou</textarea>
+            <div class="hint">支持链接、文本、WiFi 配置等</div>
+          </div>
+
+          <div class="row">
+            <div class="field">
+              <label>前景色</label>
+              <div class="color-wrap">
+                <input type="color" id="fg" value="#000000">
+                <input type="text" id="fgText" value="#000000">
+              </div>
+            </div>
+            <div class="field">
+              <label>背景色</label>
+              <div class="color-wrap">
+                <input type="color" id="bg" value="#ffffff">
+                <input type="text" id="bgText" value="#ffffff">
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>容错级别</label>
+            <select id="ecc">
+              <option value="L">L - 约 7%</option>
+              <option value="M" selected>M - 约 15%</option>
+              <option value="Q">Q - 约 25%</option>
+              <option value="H">H - 约 30%</option>
+            </select>
+            <div class="hint">加入 Logo 时建议选择 Q 或 H</div>
+          </div>
+
+          <div class="field">
+            <label>尺寸</label>
+            <div class="size-options" id="sizeOptions">
+              <button class="chip" data-size="256">256</button>
+              <button class="chip active" data-size="512">512</button>
+              <button class="chip" data-size="1024">1024</button>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>中心 Logo（可选）</label>
+            <label class="file-btn">
+              <input type="file" id="logo" accept="image/*">
+              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+              上传 Logo
+            </label>
+            <div class="preview" id="logoPreview"></div>
+          </div>
+
+          <div class="actions">
+            <button class="primary" id="downloadBtn">下载 PNG</button>
+            <button class="secondary" id="copyBtn">复制图片</button>
+          </div>
+        </div>
+
+        <div class="preview-box">
+          <canvas id="qrCanvas"></canvas>
+          <div class="empty" id="emptyHint">输入内容后将在此生成二维码</div>
+        </div>
+      </div>
+    </div>
+
+    <footer>© 2026 小乘工具箱 · 本工具在浏览器本地运行，不会上传任何内容</footer>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <script>
+    const textEl = document.getElementById('text');
+    const fgEl = document.getElementById('fg');
+    const bgEl = document.getElementById('bg');
+    const fgText = document.getElementById('fgText');
+    const bgText = document.getElementById('bgText');
+    const eccEl = document.getElementById('ecc');
+    const sizeOptions = document.getElementById('sizeOptions');
+    const logoEl = document.getElementById('logo');
+    const logoPreview = document.getElementById('logoPreview');
+    const canvas = document.getElementById('qrCanvas');
+    const ctx = canvas.getContext('2d');
+    const emptyHint = document.getElementById('emptyHint');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const copyBtn = document.getElementById('copyBtn');
+    const toast = document.getElementById('toast');
+
+    let size = 512;
+    let logoImg = null;
+
+    function eccFromValue(v) {
+      return { L: QRCode.CorrectLevel.L, M: QRCode.CorrectLevel.M, Q: QRCode.CorrectLevel.Q, H: QRCode.CorrectLevel.H }[v];
+    }
+
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 1800);
+    }
+
+    function setLogoPreview(file) {
+      if (!file) { logoPreview.innerHTML = ''; logoImg = null; return; }
+      const url = URL.createObjectURL(file);
+      logoPreview.innerHTML = `<img src="${url}" alt="logo"><span>${file.name}</span>`;
+      const img = new Image();
+      img.onload = () => { logoImg = img; render(); };
+      img.src = url;
+    }
+
+    async function render() {
+      const text = (textEl.value || '').trim();
+      if (!text) {
+        canvas.style.display = 'none';
+        emptyHint.style.display = '';
+        return;
+      }
+      canvas.style.display = '';
+      emptyHint.style.display = 'none';
+
+      const fg = fgEl.value;
+      const bg = bgEl.value;
+
+      const opts = {
+        width: size,
+        margin: 2,
+        color: { dark: fg, light: bg },
+        errorCorrectionLevel: eccFromValue(eccEl.value),
+      };
+
+      try {
+        await QRCode.toCanvas(canvas, text, opts);
+      } catch (e) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        canvas.style.display = 'none';
+        emptyHint.style.display = '';
+        emptyHint.textContent = '内容过长或无法生成二维码，请缩短文本后重试';
+        return;
+      }
+
+      if (logoImg) {
+        const maxLogo = Math.floor(size * 0.22);
+        const scale = Math.min(1, maxLogo / Math.max(logoImg.width, logoImg.height));
+        const w = logoImg.width * scale;
+        const h = logoImg.height * scale;
+        const x = (size - w) / 2;
+        const y = (size - h) / 2;
+        const r = Math.floor(12 * (size / 512));
+
+        ctx.save();
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.beginPath();
+        ctx.roundRect(x - r, y - r, w + r * 2, h + r * 2, r);
+        ctx.fill();
+        ctx.restore();
+
+        ctx.drawImage(logoImg, x, y, w, h);
+      }
+    }
+
+    textEl.addEventListener('input', render);
+    fgEl.addEventListener('input', () => { fgText.value = fgEl.value; render(); });
+    bgEl.addEventListener('input', () => { bgText.value = bgEl.value; render(); });
+    fgText.addEventListener('input', () => { if (/^#[0-9a-fA-F]{6}$/.test(fgText.value)) { fgEl.value = fgText.value; render(); } });
+    bgText.addEventListener('input', () => { if (/^#[0-9a-fA-F]{6}$/.test(bgText.value)) { bgEl.value = bgText.value; render(); } });
+    eccEl.addEventListener('change', render);
+    logoEl.addEventListener('change', (e) => setLogoPreview(e.target.files[0]));
+
+    sizeOptions.addEventListener('click', (e) => {
+      const btn = e.target.closest('.chip');
+      if (!btn) return;
+      sizeOptions.querySelectorAll('.chip').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      size = parseInt(btn.dataset.size, 10);
+      render();
+    });
+
+    downloadBtn.addEventListener('click', async () => {
+      const text = (textEl.value || '').trim();
+      if (!text) { showToast('请先输入内容'); return; }
+      const opts = {
+        width: size,
+        margin: 2,
+        color: { dark: fgEl.value, light: bgEl.value },
+        errorCorrectionLevel: eccFromValue(eccEl.value),
+      };
+      const dataUrl = await QRCode.toDataURL(text, opts);
+      const a = document.createElement('a');
+      a.href = dataUrl;
+      a.download = 'qrcode.png';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      showToast('已开始下载');
+    });
+
+    copyBtn.addEventListener('click', async () => {
+      const text = (textEl.value || '').trim();
+      if (!text) { showToast('请先输入内容'); return; }
+      try {
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+        showToast('已复制到剪贴板');
+      } catch (e) {
+        showToast('复制失败，请使用下载');
+      }
+    });
+
+    render();
+  </script>
+</body>
+</html>
