@@ -435,8 +435,10 @@ async function deleteAndPublish() {
   if (!currentId) return;
   if (!confirm('确定要删除这个站点吗？删除后将立即同步到线上。')) return;
   db.sites = db.sites.filter(s => s.id !== currentId);
-  initNewForm();
-  await publish('statusBox');
+  renderList();
+  document.getElementById('statusBox').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  const ok = await publish('statusBox');
+  if (ok) initNewForm();
 }
 
 function downloadBackup() {
@@ -535,7 +537,7 @@ async function publish(statusEl) {
 
   if (!token) {
     showLog(statusEl, '请先在「GitHub 配置」标签页中填写并保存您的 GitHub Token！', 'error');
-    return;
+    return false;
   }
 
   showLog(statusEl, '正在连接 GitHub 并检索文件状态...', 'info');
@@ -560,12 +562,15 @@ async function publish(statusEl) {
 
     if (putRes.status === 200 || putRes.status === 201) {
       showLog(statusEl, '🎉 成功！数据已发布。\nGitHub Actions 正在后台编译（约 35-45 秒），稍后刷新前台即可看到最新内容。', 'success');
+      return true;
     } else {
       const err = await putRes.json();
       showLog(statusEl, '❌ 推送失败：' + (err.message || '未知错误'), 'error');
+      return false;
     }
   } catch (e) {
     showLog(statusEl, '❌ 连接 GitHub API 异常：' + e.message, 'error');
+    return false;
   }
 }
 
