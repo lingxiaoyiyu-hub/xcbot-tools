@@ -17,11 +17,7 @@
   --danger: #ef4444;
 }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
@@ -32,6 +28,78 @@ body {
   flex-direction: column;
 }
 
+/* ── Login Gate ── */
+#loginOverlay {
+  position: fixed; inset: 0; z-index: 9999;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.login-box {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 20px;
+  padding: 40px 36px;
+  width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+.login-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--primary);
+}
+.login-title {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+.login-input {
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  color: var(--text);
+  padding: 12px 16px;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s;
+  letter-spacing: 2px;
+}
+.login-input:focus { border-color: var(--primary); }
+.login-btn {
+  width: 100%;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 13px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.login-btn:hover { background: var(--primary-hover); }
+.login-error {
+  font-size: 0.8rem;
+  color: var(--danger);
+  text-align: center;
+  min-height: 18px;
+}
+
+/* ── Admin UI ── */
+#adminContent {
+  display: none;
+  flex-direction: column;
+  flex: 1;
+}
+
 /* Header */
 header {
   height: 56px;
@@ -39,8 +107,10 @@ header {
   display: flex;
   align-items: center;
   padding: 0 24px;
-  background: rgba(9, 13, 22, 0.8);
+  background: rgba(9,13,22,0.85);
   backdrop-filter: blur(12px);
+  position: sticky;
+  top: 0;
   z-index: 10;
 }
 .logo {
@@ -60,36 +130,28 @@ header {
 }
 .nav-link {
   color: var(--text-muted);
-  font-size: 0.88rem;
   text-decoration: none;
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  font-size: 0.85rem;
   transition: color 0.2s;
 }
-.nav-link:hover {
-  color: var(--primary);
-}
+.nav-link:hover { color: var(--text); }
 
-/* Main Layout */
+/* Layout */
 .container {
-  max-width: 1100px;
-  width: 100%;
-  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 20px;
   padding: 24px;
   flex: 1;
-  display: grid;
-  grid-template-columns: 320px 1fr;
-  gap: 24px;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+}
+@media (max-width: 768px) {
+  .container { grid-template-columns: 1fr; }
 }
 
-@media (max-width: 900px) {
-  .container {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* Card layout styles */
+/* Panels */
 .panel {
   background: var(--card);
   border: 1px solid var(--card-border);
@@ -100,81 +162,51 @@ header {
   gap: 16px;
 }
 .panel-title {
-  font-size: 1.1rem;
+  font-size: 0.9rem;
   font-weight: 700;
-  border-bottom: 1px solid var(--card-border);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   padding-bottom: 12px;
+  border-bottom: 1px solid var(--card-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
-/* Left panel site list */
-.site-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  overflow-y: auto;
-  max-height: 500px;
-}
+/* Site List */
+.site-list { display: flex; flex-direction: column; gap: 8px; }
 .list-item {
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(255,255,255,0.03);
   border: 1px solid var(--card-border);
-  padding: 12px;
-  border-radius: 8px;
+  border-radius: 10px;
+  padding: 12px 14px;
   cursor: pointer;
-  transition: all 0.2s;
-  text-align: left;
+  transition: border-color 0.2s, background 0.2s;
 }
-.list-item:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: var(--primary);
-}
-.list-item.active {
-  background: rgba(59, 130, 246, 0.1);
-  border-color: var(--primary);
-}
-.list-item-name {
-  font-size: 0.88rem;
-  font-weight: 600;
-  margin-bottom: 4px;
-}
-.list-item-domain {
-  font-size: 0.72rem;
-  color: var(--text-muted);
-}
+.list-item:hover { border-color: var(--primary); background: rgba(59,130,246,0.05); }
+.list-item.active { border-color: var(--primary); background: rgba(59,130,246,0.1); }
+.list-item-name { font-size: 0.9rem; font-weight: 600; }
+.list-item-domain { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
 
-/* Add / Edit Form */
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.form-label {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: #94a3b8;
-}
+/* Form */
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-label { font-size: 0.78rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
 .form-input, .form-textarea {
-  width: 100%;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255,255,255,0.04);
   border: 1px solid var(--card-border);
   border-radius: 8px;
   color: var(--text);
   padding: 10px 12px;
   font-size: 0.88rem;
+  font-family: inherit;
   outline: none;
   transition: border-color 0.2s;
+  width: 100%;
 }
-.form-input:focus, .form-textarea:focus {
-  border-color: var(--primary);
-}
-.form-checkbox-row {
-  display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
-  padding: 4px 0;
-}
+.form-input:focus, .form-textarea:focus { border-color: var(--primary); }
+.form-textarea { resize: vertical; }
+.form-checkbox-row { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 4px; }
 .checkbox-label {
   display: flex;
   align-items: center;
@@ -182,158 +214,63 @@ header {
   font-size: 0.88rem;
   cursor: pointer;
 }
-.checkbox-label input {
-  cursor: pointer;
-  accent-color: var(--primary);
-}
+.checkbox-label input { cursor: pointer; accent-color: var(--primary); }
 
 /* Buttons */
-.btn-group {
-  display: flex;
-  gap: 12px;
-  margin-top: 8px;
-}
+.btn-group { display: flex; gap: 12px; flex-wrap: wrap; }
 .btn {
-  padding: 10px 16px;
+  padding: 10px 18px;
   border-radius: 8px;
   font-size: 0.88rem;
   font-weight: 600;
+  border: none;
   cursor: pointer;
   transition: all 0.2s;
-  border: none;
+  white-space: nowrap;
 }
-.btn-primary {
-  background: var(--primary);
-  color: #fff;
-}
-.btn-primary:hover {
-  background: var(--primary-hover);
-}
-.btn-secondary {
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--text);
-  border: 1px solid var(--card-border);
-}
-.btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-.btn-danger {
-  background: var(--danger);
-  color: #fff;
-}
-.btn-danger:hover {
-  background: #dc2626;
-}
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-hover); }
+.btn-secondary { background: rgba(255,255,255,0.06); color: var(--text); border: 1px solid var(--card-border); }
+.btn-secondary:hover { background: rgba(255,255,255,0.1); }
+.btn-success { background: var(--success); color: #fff; }
+.btn-success:hover { background: #059669; }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-danger:hover { background: #dc2626; }
 
 /* GitHub Settings Panel */
 .sync-panel {
   grid-column: 1 / -1;
-  background: rgba(16, 185, 129, 0.02);
+  background: rgba(16,185,129,0.02);
   border: 1px dashed var(--success);
 }
-.sync-panel.failure {
-  border-color: var(--danger);
-  background: rgba(239, 68, 68, 0.02);
-}
-.sync-row {
-  display: flex;
-  gap: 16px;
-  align-items: flex-end;
-  flex-wrap: wrap;
-}
-.sync-row .form-group {
-  flex: 1;
-  min-width: 200px;
-}
+.sync-row { display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap; }
+.sync-row .form-group { flex: 1; min-width: 200px; }
 
-/* Deploy Log / Status */
+/* Status Box */
 .status-box {
   padding: 12px;
   border-radius: 8px;
   font-size: 0.82rem;
-  background: rgba(255, 255, 255, 0.03);
+  line-height: 1.6;
+  background: rgba(255,255,255,0.03);
   border: 1px solid var(--card-border);
-  line-height: 1.5;
   display: none;
+  white-space: pre-wrap;
 }
-/* ── Login Gate ── */
-#loginOverlay {
-  position: fixed; inset: 0; z-index: 9999;
-  background: var(--bg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.login-box {
-  background: var(--card);
-  border: 1px solid var(--card-border);
-  border-radius: 20px;
-  padding: 40px 36px;
-  width: 360px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-}
-.login-logo {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 1.2rem;
-  font-weight: 800;
-  color: var(--primary);
-}
-.login-title {
-  font-size: 0.9rem;
-  color: var(--text-muted);
-  line-height: 1.5;
-}
-.login-input {
-  width: 100%;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid var(--card-border);
-  border-radius: 10px;
-  color: var(--text);
-  padding: 12px 16px;
-  font-size: 1rem;
-  outline: none;
-  transition: border-color 0.2s;
-  letter-spacing: 2px;
-}
-.login-input:focus {
-  border-color: var(--primary);
-}
-.login-btn {
-  width: 100%;
-  background: var(--primary);
-  color: #fff;
-  border: none;
-  border-radius: 10px;
-  padding: 12px;
-  font-size: 0.95rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.login-btn:hover {
-  background: var(--primary-hover);
-}
-.login-error {
-  font-size: 0.8rem;
-  color: var(--danger);
+
+/* Footer */
+footer {
   text-align: center;
-  min-height: 18px;
-}
-#adminContent {
-  display: none;
-  flex-direction: column;
-  flex: 1;
+  padding: 16px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  border-top: 1px solid var(--card-border);
 }
 </style>
 </head>
-<body style="display:flex; flex-direction:column;">
+<body>
 
-  <!-- Login Gate -->
+  <!-- ====== Login Gate ====== -->
   <div id="loginOverlay">
     <div class="login-box">
       <div class="login-logo">
@@ -341,16 +278,16 @@ header {
           <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
           <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
         </svg>
-        后台管理 · 验证身份
+        &#x540E;&#x53F0;&#x7BA1;&#x7406; &middot; &#x9A8C;&#x8BC1;&#x8EAB;&#x4EFD;
       </div>
-      <div class="login-title">请输入管理员密码才能继续操作。</div>
-      <input type="password" id="loginInput" class="login-input" placeholder="请输入密码" onkeydown="if(event.key==='Enter') checkLogin()" autofocus>
-      <button class="login-btn" onclick="checkLogin()">登 录</button>
+      <div class="login-title">&#x8BF7;&#x8F93;&#x5165;&#x7BA1;&#x7406;&#x5458;&#x5BC6;&#x7801;&#x624D;&#x80FD;&#x8FDB;&#x5165;&#x540E;&#x53F0;&#x7BA1;&#x7406;&#x9762;&#x677F;&#x3002;</div>
+      <input type="password" id="loginInput" class="login-input" placeholder="&#x8BF7;&#x8F93;&#x5165;&#x5BC6;&#x7801;" onkeydown="if(event.key==='Enter') checkLogin()" autofocus>
+      <button class="login-btn" onclick="checkLogin()">&#x767B; &#x5F55;</button>
       <div class="login-error" id="loginError"></div>
     </div>
   </div>
 
-  <!-- Admin Content (hidden until auth) -->
+  <!-- ====== Admin Content (hidden until auth) ====== -->
   <div id="adminContent">
 
   <header>
@@ -360,396 +297,306 @@ header {
         <polyline points="2 17 12 22 22 17"></polyline>
         <polyline points="2 12 12 17 22 12"></polyline>
       </svg>
-      <span>公益站导航 - 后台管理</span>
+      <span>&#x516C;&#x76CA;&#x7AD9;&#x5BFC;&#x822A; - &#x540E;&#x53F0;&#x7BA1;&#x7406;</span>
     </a>
     <div class="header-actions">
-      <a href="index.html" class="nav-link">
-        返回导航页面
-      </a>
-      <a href="../" class="nav-link">
-        返回工具箱首页
-      </a>
+      <a href="index.html" class="nav-link">&#x8FD4;&#x56DE;&#x5BFC;&#x822A;&#x9875;&#x9762;</a>
+      <a href="../" class="nav-link">&#x8FD4;&#x56DE;&#x5DE5;&#x5177;&#x7BB1;&#x9996;&#x9875;</a>
     </div>
   </header>
 
   <div class="container">
-    <!-- Top GitHub Sync Settings -->
-    <div class="panel sync-panel" id="syncPanel">
+
+    <!-- GitHub Sync Config -->
+    <div class="panel sync-panel">
       <div class="panel-title" style="border-bottom:none;padding-bottom:0">
-        ☁️ GitHub 自动同步发布配置 (无服务器 CMS 方案)
+        &#x2601;&#xFE0F; GitHub &#x81EA;&#x52A8;&#x540C;&#x6B65;&#x914D;&#x7F6E;
       </div>
       <div class="sync-row">
         <div class="form-group">
-          <label class="form-label">GitHub 个人访问令牌 (Token)</label>
-          <input type="password" id="githubToken" class="form-input" placeholder="输入 GitHub Personal Access Token (PAT)">
+          <label class="form-label">GitHub Token (PAT)</label>
+          <input type="password" id="githubToken" class="form-input" placeholder="&#x8F93;&#x5165; GitHub Personal Access Token">
         </div>
         <div class="form-group">
-          <label class="form-label">GitHub 用户名</label>
-          <input type="text" id="githubUser" class="form-input" placeholder="例如: lingxiaoyiyu-hub">
+          <label class="form-label">&#x7528;&#x6237;&#x540D;</label>
+          <input type="text" id="githubUser" class="form-input" placeholder="lingxiaoyiyu-hub">
         </div>
         <div class="form-group">
-          <label class="form-label">GitHub 仓库名称</label>
-          <input type="text" id="githubRepo" class="form-input" placeholder="例如: my-tools">
+          <label class="form-label">&#x4ED3;&#x5E93;&#x540D;</label>
+          <input type="text" id="githubRepo" class="form-input" placeholder="my-tools">
         </div>
-        <div class="form-group" style="flex: 0; min-width: auto;">
-          <button class="btn btn-primary" onclick="saveConfig()">保存配置</button>
+        <div class="form-group" style="flex:0;min-width:auto">
+          <button class="btn btn-secondary" onclick="saveConfig()">&#x4FDD;&#x5B58;&#x914D;&#x7F6E;</button>
         </div>
       </div>
-      <div style="font-size: 0.74rem; color: var(--text-muted);">
-        ⚠️ 安全提示：您的 Token 会<b>保存在您本地浏览器的 LocalStorage 中</b>，不会上传至任何第三方服务器，100% 安全。
+      <div style="font-size:0.74rem;color:var(--text-muted)">
+        &#x26A0;&#xFE0F; Token &#x4EC5;&#x5B58;&#x50A8;&#x5728;&#x672C;&#x5730;&#x6D4F;&#x89C8;&#x5668; LocalStorage&#xFF0C;&#x4E0D;&#x4F1A;&#x4E0A;&#x4F20;&#x5230;&#x4EFB;&#x4F55;&#x670D;&#x52A1;&#x5668;&#x3002;
       </div>
     </div>
 
     <!-- Left: Site List -->
     <div class="panel">
       <div class="panel-title">
-        <span>收录站点列表</span>
-        <button class="btn btn-secondary" style="padding: 4px 8px; font-size: 0.74rem" onclick="initNewForm()">+ 新增</button>
+        <span>&#x6536;&#x5F55;&#x7AD9;&#x70B9;&#x5217;&#x8868;</span>
+        <button class="btn btn-secondary" style="padding:4px 10px;font-size:0.74rem" onclick="initNewForm()">+ &#x65B0;&#x589E;</button>
       </div>
-      <div class="site-list" id="siteList">
-        <!-- Rendered list -->
-      </div>
+      <div class="site-list" id="siteList"></div>
     </div>
 
     <!-- Right: Edit Form -->
     <div class="panel">
-      <div class="panel-title" id="formTitle">新增站点</div>
-      
+      <div class="panel-title" id="formTitle">&#x65B0;&#x589E;&#x7AD9;&#x70B9;</div>
+
       <div class="form-group">
-        <label class="form-label">站点名称</label>
-        <input type="text" id="siteName" class="form-input" placeholder="例如: bizdecipher">
+        <label class="form-label">&#x7AD9;&#x70B9;&#x540D;&#x79F0;</label>
+        <input type="text" id="siteName" class="form-input" placeholder="&#x4F8B;&#x5982;: bizdecipher">
       </div>
 
       <div class="form-group">
-        <label class="form-label">站点域名</label>
-        <input type="text" id="siteDomain" class="form-input" placeholder="例如: bizdecipher.com">
+        <label class="form-label">&#x7AD9;&#x70B9;&#x57DF;&#x540D;</label>
+        <input type="text" id="siteDomain" class="form-input" placeholder="&#x4F8B;&#x5982;: bizdecipher.com">
       </div>
 
       <div class="form-group">
-        <label class="form-label">推广链接 / 跳转地址</label>
-        <input type="text" id="siteUrl" class="form-input" placeholder="输入带有推广码(aff)的注册链接">
+        <label class="form-label">&#x8DF3;&#x8F6C;&#x5730;&#x5740; (&#x63A8;&#x5E7F;&#x94FE;&#x63A5;)</label>
+        <input type="text" id="siteUrl" class="form-input" placeholder="&#x8F93;&#x5165;&#x6CE8;&#x518C;&#x94FE;&#x63A5;&#x6216;&#x63A8;&#x5E7F;&#x7801;&#x94FE;&#x63A5;">
       </div>
 
       <div class="form-group">
-        <label class="form-label">专区标签</label>
+        <label class="form-label">&#x4E13;&#x533A;&#x6807;&#x7B7E;</label>
         <div class="form-checkbox-row">
-          <label class="checkbox-label"><input type="checkbox" name="siteTag" value="签到"> 签到</label>
-          <label class="checkbox-label"><input type="checkbox" name="siteTag" value="生图"> 生图</label>
-          <label class="checkbox-label"><input type="checkbox" name="siteTag" value="稳定"> 稳定</label>
+          <label class="checkbox-label"><input type="checkbox" name="siteTag" value="&#x7B7E;&#x5230;"> &#x7B7E;&#x5230;</label>
+          <label class="checkbox-label"><input type="checkbox" name="siteTag" value="&#x751F;&#x56FE;"> &#x751F;&#x56FE;</label>
+          <label class="checkbox-label"><input type="checkbox" name="siteTag" value="&#x7A33;&#x5B9A;"> &#x7A33;&#x5B9A;</label>
         </div>
       </div>
 
       <div class="form-group">
-        <label class="form-label">站点备注 / 额外说明</label>
-        <textarea id="siteDesc" class="form-textarea" rows="4" placeholder="【0703新增】说明注册赠送额度、签到福利等..."></textarea>
+        <label class="form-label">&#x5907;&#x6CE8; / &#x8BF4;&#x660E;</label>
+        <textarea id="siteDesc" class="form-textarea" rows="4" placeholder="&#x6CE8;&#x518C;&#x8D60;&#x9001;&#x989D;&#x5EA6;&#x3001;&#x7B7E;&#x5230;&#x798F;&#x5229;&#x7B49;..."></textarea>
       </div>
 
       <div class="btn-group">
-        <button class="btn btn-primary" id="saveBtn" onclick="saveSite()">保存修改</button>
-        <button class="btn btn-danger" id="deleteBtn" style="display:none" onclick="deleteSite()">删除站点</button>
-        <button class="btn btn-secondary" onclick="initNewForm()">取消</button>
+        <button class="btn btn-success" id="saveBtn" onclick="saveAndPublish()">&#x1F4BE; &#x4FDD;&#x5B58;&#x5E76;&#x7ACB;&#x5373;&#x53D1;&#x5E03;</button>
+        <button class="btn btn-danger" id="deleteBtn" style="display:none" onclick="deleteAndPublish()">&#x1F5D1; &#x5220;&#x9664;&#x5E76;&#x53D1;&#x5E03;</button>
+        <button class="btn btn-secondary" onclick="initNewForm()">&#x53D6;&#x6D88;</button>
       </div>
 
-      <hr style="border:none;border-top:1px solid var(--card-border);margin: 12px 0;">
+      <hr style="border:none;border-top:1px solid var(--card-border);margin:4px 0">
 
-      <div class="panel-title">发布与备份</div>
+      <div class="panel-title" style="border:none;padding:0">&#x5907;&#x4EFD;</div>
       <div class="btn-group">
-        <button class="btn btn-primary" onclick="publishToGithub()" style="background: var(--success)">🚀 一键发布部署到 GitHub Pages</button>
-        <button class="btn btn-secondary" onclick="downloadBackup()">📥 本地下载 sites.json 备份</button>
+        <button class="btn btn-secondary" onclick="downloadBackup()">&#x1F4E5; &#x4E0B;&#x8F7D; sites.json &#x5907;&#x4EFD;</button>
       </div>
-      
-      <!-- Sync logs -->
+
       <div class="status-box" id="statusBox"></div>
     </div>
+
   </div>
 
   <footer>
-    <p>© 2026 公益站导航. 所有配置均在浏览器本地处理，安全可靠。</p>
+    <p>&copy; 2026 &#x516C;&#x76CA;&#x7AD9;&#x5BFC;&#x822A; &mdash; &#x6240;&#x6709;&#x914D;&#x7F6E;&#x5747;&#x5728;&#x6D4F;&#x89C8;&#x5668;&#x672C;&#x5730;&#x5904;&#x7406;&#xFF0C;&#x5B89;&#x5168;&#x53EF;&#x9760;&#x3002;</p>
   </footer>
 
-  <script>
-    let sites = [];
-    let currentId = null;
+  </div><!-- /adminContent -->
 
-    // Load credentials and local config
-    function loadConfig() {
-      document.getElementById('githubToken').value = localStorage.getItem('nav_git_token') || '';
-      document.getElementById('githubUser').value = localStorage.getItem('nav_git_user') || 'lingxiaoyiyu-hub';
-      document.getElementById('githubRepo').value = localStorage.getItem('nav_git_repo') || 'my-tools';
+<script>
+  let sites = [];
+  let currentId = null;
+
+  // ── Config ──
+  function loadConfig() {
+    document.getElementById('githubToken').value = localStorage.getItem('nav_git_token') || '';
+    const u = localStorage.getItem('nav_git_user') || 'lingxiaoyiyu-hub';
+    const r = localStorage.getItem('nav_git_repo') || 'my-tools';
+    document.getElementById('githubUser').value = u;
+    document.getElementById('githubRepo').value = r;
+    if (!localStorage.getItem('nav_git_user')) {
+      localStorage.setItem('nav_git_user', u);
+      localStorage.setItem('nav_git_repo', r);
     }
+  }
 
-    function saveConfig() {
-      const token = document.getElementById('githubToken').value.trim();
-      const user = document.getElementById('githubUser').value.trim();
-      const repo = document.getElementById('githubRepo').value.trim();
+  function saveConfig() {
+    localStorage.setItem('nav_git_token', document.getElementById('githubToken').value.trim());
+    localStorage.setItem('nav_git_user', document.getElementById('githubUser').value.trim());
+    localStorage.setItem('nav_git_repo', document.getElementById('githubRepo').value.trim());
+    showLog('\u914D\u7F6E\u5DF2\u4FDD\u5B58\u5230\u672C\u5730\u6D4F\u89C8\u5668\u3002', 'success');
+  }
 
-      localStorage.setItem('nav_git_token', token);
-      localStorage.setItem('nav_git_user', user);
-      localStorage.setItem('nav_git_repo', repo);
-
-      alert("发布配置保存成功！");
-    }
-
-    // Load database
-    async function loadData() {
-      try {
-        const res = await fetch('sites.json');
-        sites = await res.json();
-        renderList();
-      } catch (err) {
-        showLog("无法读取 sites.json，将使用空白列表。", "error");
-      }
-    }
-
-    // Render list
-    function renderList() {
-      const list = document.getElementById('siteList');
-      list.innerHTML = sites.map(site => `
-        <div class="list-item ${currentId === site.id ? 'active' : ''}" onclick="selectSite('${site.id}')">
-          <div class="list-item-name">${escapeHtml(site.name)}</div>
-          <div class="list-item-domain">${escapeHtml(site.domain)}</div>
-        </div>
-      `).join('');
-    }
-
-    // Select site to edit
-    function selectSite(id) {
-      currentId = id;
+  // ── Data ──
+  async function loadData() {
+    try {
+      const res = await fetch('sites.json?t=' + Date.now());
+      sites = await res.json();
       renderList();
-      
-      const site = sites.find(s => s.id === id);
-      if (!site) return;
+    } catch (e) {
+      showLog('\u65E0\u6CD5\u8BFB\u53D6 sites.json\uFF0C\u5C06\u4F7F\u7528\u7A7A\u767D\u5217\u8868\u3002', 'error');
+    }
+  }
 
-      document.getElementById('formTitle').textContent = `编辑站点 - ${site.name}`;
-      document.getElementById('siteName').value = site.name;
-      document.getElementById('siteDomain').value = site.domain;
-      document.getElementById('siteUrl').value = site.url;
-      document.getElementById('siteDesc').value = site.description;
-      
-      document.querySelectorAll('input[name="siteTag"]').forEach(cb => {
-        cb.checked = site.tags.includes(cb.value);
-      });
+  function renderList() {
+    document.getElementById('siteList').innerHTML = sites.map(s => `
+      <div class="list-item ${currentId === s.id ? 'active' : ''}" onclick="selectSite('${s.id}')">
+        <div class="list-item-name">${escapeHtml(s.name)}</div>
+        <div class="list-item-domain">${escapeHtml(s.domain)}</div>
+      </div>
+    `).join('');
+  }
 
-      document.getElementById('deleteBtn').style.display = 'block';
+  function selectSite(id) {
+    currentId = id;
+    renderList();
+    const site = sites.find(s => s.id === id);
+    if (!site) return;
+    document.getElementById('formTitle').textContent = '\u7F16\u8F91\u7AD9;&#x70B9; - ' + site.name;
+    document.getElementById('siteName').value = site.name;
+    document.getElementById('siteDomain').value = site.domain;
+    document.getElementById('siteUrl').value = site.url;
+    document.getElementById('siteDesc').value = site.description || '';
+    document.querySelectorAll('input[name="siteTag"]').forEach(cb => {
+      cb.checked = (site.tags || []).includes(cb.value);
+    });
+    document.getElementById('deleteBtn').style.display = 'inline-flex';
+  }
+
+  function initNewForm() {
+    currentId = null;
+    renderList();
+    document.getElementById('formTitle').textContent = '\u65B0\u589E\u7AD9\u70B9';
+    ['siteName','siteDomain','siteUrl','siteDesc'].forEach(id => document.getElementById(id).value = '');
+    document.querySelectorAll('input[name="siteTag"]').forEach(cb => cb.checked = false);
+    document.getElementById('deleteBtn').style.display = 'none';
+  }
+
+  function buildSiteFromForm() {
+    const name = document.getElementById('siteName').value.trim();
+    const domain = document.getElementById('siteDomain').value.trim();
+    const url = document.getElementById('siteUrl').value.trim();
+    const description = document.getElementById('siteDesc').value.trim();
+    const tags = [...document.querySelectorAll('input[name="siteTag"]:checked')].map(cb => cb.value);
+    if (!name || !domain || !url) { alert('\u8BF7\u5B8C;&#x6574;\u586B\u5199\u540D\u79F0\u3001\u57DF\u540D\u548C\u8DF3\u8F6C\u94FE\u63A5\uFF01'); return null; }
+    return { name, domain, url, description, tags };
+  }
+
+  async function saveAndPublish() {
+    const data = buildSiteFromForm();
+    if (!data) return;
+    if (currentId) {
+      const idx = sites.findIndex(s => s.id === currentId);
+      if (idx !== -1) sites[idx] = { ...sites[idx], ...data };
+    } else {
+      sites.push({ id: String(Date.now()), date: new Date().toISOString().split('T')[0], ...data });
+    }
+    renderList();
+    await publishToGithub();
+  }
+
+  async function deleteAndPublish() {
+    if (!currentId) return;
+    if (!confirm('\u786E;&#x5B9A;\u8981;\u5220;\u9664;\u8FD9;\u4E2A;\u7AD9;\u70B9;\u5417;\uFF1F;\u5220;\u9664;\u540E;\u5C06;\u7ACB;\u5373;\u540C;\u6B65;\u5230;\u7EBF;\u4E0A;\u3002')) return;
+    sites = sites.filter(s => s.id !== currentId);
+    initNewForm();
+    renderList();
+    await publishToGithub();
+  }
+
+  // ── Publish to GitHub ──
+  async function publishToGithub() {
+    const token = localStorage.getItem('nav_git_token');
+    const owner = localStorage.getItem('nav_git_user') || 'lingxiaoyiyu-hub';
+    const repo  = localStorage.getItem('nav_git_repo')  || 'my-tools';
+
+    if (!token) {
+      showLog('\u8BF7\u5148\u5728\u9876;\u90E8\u586B\u5199;\u5E76;\u4FDD;\u5B58 GitHub Token\uFF01', 'error');
+      return;
     }
 
-    // Reset Form for New Item
-    function initNewForm() {
-      currentId = null;
-      renderList();
-      
-      document.getElementById('formTitle').textContent = "新增站点";
-      document.getElementById('siteName').value = "";
-      document.getElementById('siteDomain').value = "";
-      document.getElementById('siteUrl').value = "";
-      document.getElementById('siteDesc').value = "";
-      
-      document.querySelectorAll('input[name="siteTag"]').forEach(cb => {
-        cb.checked = false;
-      });
+    showLog('\u6B63\u5728\u8FDE;\u63A5 GitHub \u5E76;\u68C0;\u7D22;\u6587;\u4EF6;\u72B6;\u6001...', 'info');
 
-      document.getElementById('deleteBtn').style.display = 'none';
-    }
+    const path = 'api-nav/sites.json';
+    const fileUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+    const headers = {
+      'Authorization': `token ${token}`,
+      'Accept': 'application/vnd.github.v3+json',
+      'Content-Type': 'application/json'
+    };
 
-    // Save site locally
-    function saveSite() {
-      const name = document.getElementById('siteName').value.trim();
-      const domain = document.getElementById('siteDomain').value.trim();
-      const url = document.getElementById('siteUrl').value.trim();
-      const description = document.getElementById('siteDesc').value.trim();
-      
-      const tags = [];
-      document.querySelectorAll('input[name="siteTag"]:checked').forEach(cb => {
-        tags.push(cb.value);
-      });
-
-      if (!name || !domain || !url) {
-        alert("请完整填写名称、域名和跳转链接！");
-        return;
+    try {
+      const getRes = await fetch(fileUrl, { headers });
+      let sha = '';
+      if (getRes.status === 200) {
+        sha = (await getRes.json()).sha;
       }
 
-      if (currentId) {
-        // Edit existing
-        const idx = sites.findIndex(s => s.id === currentId);
-        if (idx !== -1) {
-          sites[idx] = {
-            ...sites[idx],
-            name,
-            domain,
-            url,
-            description,
-            tags
-          };
-        }
+      const jsonStr = JSON.stringify(sites, null, 2);
+      const encodedContent = btoa(unescape(encodeURIComponent(jsonStr)));
+      const putBody = { message: 'Update api-nav sites.json via admin dashboard', content: encodedContent, sha };
+
+      showLog('\u6B63\u5728;\u63A8;\u9001;\u6570;\u636E;\u81F3 GitHub \u4ED3;\u5E93...', 'info');
+
+      const putRes = await fetch(fileUrl, { method: 'PUT', headers, body: JSON.stringify(putBody) });
+
+      if (putRes.status === 200 || putRes.status === 201) {
+        showLog('\uD83C\uDF89 \u6210\u529F\uFF01sites.json \u5DF2;\u53D1;\u5E03;\u3002\nGitHub Actions \u6B63\u5728;\u540E;\u53F0;\u7F16;\u8BD1;\u5E76;\u90E8;\u7F72;\uFF08\u7EA6 35-45 \u79D2;\uFF09\uFF0C\u7A0D;\u540E;\u5237;\u65B0;\u4E3B;\u9875;\u5373;\u53EF;\u770B;\u5230;\u6700;\u65B0;\u6570;\u636E;\uFF01', 'success');
       } else {
-        // Add new
-        const newSite = {
-          id: String(Date.now()),
-          name,
-          domain,
-          url,
-          description,
-          tags,
-          date: new Date().toISOString().split('T')[0]
-        };
-        sites.push(newSite);
+        const errData = await putRes.json();
+        showLog('\u274C \u63A8;\u9001;\u5931;\u8D25;\uFF1A' + (errData.message || '\u672A;\u77E5;\u9519;\u8BEF;'), 'error');
       }
-
-      initNewForm();
-      renderList();
-      alert("本地修改已保存！请点击下方的“一键发布部署到 GitHub”使修改线上生效。");
+    } catch (err) {
+      showLog('\u274C \u8FDE;\u63A5 GitHub API \u5F02;\u5E38;\uFF1A' + err.message, 'error');
     }
+  }
 
-    // Delete site locally
-    function deleteSite() {
-      if (!currentId) return;
-      if (!confirm("确定要删除这个站点吗？")) return;
+  function downloadBackup() {
+    const a = document.createElement('a');
+    a.href = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(sites, null, 2));
+    a.download = 'sites.json';
+    a.click();
+  }
 
-      sites = sites.filter(s => s.id !== currentId);
-      initNewForm();
-      renderList();
-      alert("本地已删除！请点击下方的“一键发布部署到 GitHub”使修改线上生效。");
-    }
+  function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
 
-    // Push/Publish to GitHub using REST API
-    async function publishToGithub() {
-      const token = localStorage.getItem('nav_git_token');
-      const owner = localStorage.getItem('nav_git_user');
-      const repo = localStorage.getItem('nav_git_repo');
+  function showLog(msg, type) {
+    const box = document.getElementById('statusBox');
+    box.style.display = 'block';
+    box.textContent = msg;
+    box.style.borderColor = type === 'error' ? 'var(--danger)' : type === 'success' ? 'var(--success)' : 'var(--card-border)';
+    box.style.color = type === 'error' ? 'var(--danger)' : type === 'success' ? 'var(--success)' : 'var(--text)';
+  }
 
-      if (!token || !owner || !repo) {
-        alert("请先在顶部配置好您的 GitHub Token, 用户名和仓库名！");
-        return;
-      }
+  // ── Password Gate ──
+  // SHA-256("admin888") = aaffebecec560fec66e75f24062224ffa4e07696d2ae9a1fee3707c3f8fd9373
+  // Verified via PowerShell: [System.Security.Cryptography.SHA256]::Create().ComputeHash(...)
+  const ADMIN_HASH = 'aaffebecec560fec66e75f24062224ffa4e07696d2ae9a1fee3707c3f8fd9373';
 
-      showLog("正在连接 GitHub 并检索文件状态...", "info");
-
-      const path = 'api-nav/sites.json';
-      const fileUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
-      const headers = {
-        'Authorization': `token ${token}`,
-        'Accept': 'application/vnd.github.v3+json',
-        'Content-Type': 'application/json'
-      };
-
-      try {
-        // 1. Get SHA of existing file
-        const getRes = await fetch(fileUrl, { headers });
-        let sha = "";
-        if (getRes.status === 200) {
-          const fileData = await getRes.json();
-          sha = fileData.sha;
-        }
-
-        // 2. Commit updated file
-        // Note: content must be base64 encoded
-        const jsonStr = JSON.stringify(sites, null, 2);
-        const encodedContent = btoa(unescape(encodeURIComponent(jsonStr)));
-
-        const putBody = {
-          message: "Update api-nav sites database via admin dashboard",
-          content: encodedContent,
-          sha: sha
-        };
-
-        showLog("正在推送最新数据提交至 GitHub 仓库...", "info");
-
-        const putRes = await fetch(fileUrl, {
-          method: 'PUT',
-          headers,
-          body: JSON.stringify(putBody)
-        });
-
-        if (putRes.status === 200 || putRes.status === 210 || putRes.status === 201) {
-          showLog("🎉 成功！站点数据库 sites.json 已成功发布并提交！\nGitHub Actions 正在后台编译并部署静态网页（大约需要 35-45 秒），稍后刷新主页即可见！", "success");
-        } else {
-          const errData = await putRes.json();
-          showLog(`❌ 推送失败：${errData.message || '未知错误'}`, "error");
-        }
-      } catch (err) {
-        showLog(`❌ 连接 GitHub API 异常：${err.message}`, "error");
-      }
-    }
-
-    // Download backup file
-    function downloadBackup() {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(sites, null, 2));
-      const dlAnchorElem = document.createElement('a');
-      dlAnchorElem.setAttribute("href", dataStr);
-      dlAnchorElem.setAttribute("download", "sites.json");
-      dlAnchorElem.click();
-    }
-
-    // Helper functions
-    function escapeHtml(str) {
-      if (!str) return '';
-      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-    }
-
-    function showLog(msg, type) {
-      const box = document.getElementById('statusBox');
-      box.style.display = 'block';
-      box.textContent = msg;
-      
-      if (type === 'error') {
-        box.style.borderColor = 'var(--danger)';
-        box.style.color = 'var(--danger)';
-      } else if (type === 'success') {
-        box.style.borderColor = 'var(--success)';
-        box.style.color = 'var(--success)';
-      } else {
-        box.style.borderColor = 'var(--card-border)';
-        box.style.color = 'var(--text)';
-      }
-    }
-
-    // ── Password Gate ──
-    // Default password hash is SHA-256 of "admin888"
-    // To change password: open browser console and run:
-    //   crypto.subtle.digest('SHA-256', new TextEncoder().encode('YOUR_NEW_PASSWORD'))
-    //     .then(b => console.log([...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')))
-    // Then replace the hash string below.
-    const ADMIN_HASH = 'b68e2cf60b5da4d3cbf5a44a1dd8b5b706e1fcb97e1aae1d4b6ea1c6a9ea18a4';
-
-    async function checkLogin() {
-      const pw = document.getElementById('loginInput').value;
-      if (!pw) return;
-
-      // Check session first
-      const sessionOk = sessionStorage.getItem('admin_auth') === '1';
-      if (sessionOk) { grantAccess(); return; }
-
-      const encoded = new TextEncoder().encode(pw);
-      const hashBuffer = await crypto.subtle.digest('SHA-256', encoded);
-      const hashHex = [...new Uint8Array(hashBuffer)].map(x => x.toString(16).padStart(2, '0')).join('');
-
-      if (hashHex === ADMIN_HASH) {
-        sessionStorage.setItem('admin_auth', '1');
-        grantAccess();
-      } else {
-        const err = document.getElementById('loginError');
-        err.textContent = '密码错误，请重试。';
-        document.getElementById('loginInput').value = '';
-        document.getElementById('loginInput').focus();
-        setTimeout(() => err.textContent = '', 3000);
-      }
-    }
-
-    function grantAccess() {
+  async function checkLogin() {
+    const pw = document.getElementById('loginInput').value;
+    if (!pw) return;
+    const encoded = new TextEncoder().encode(pw);
+    const buf = await crypto.subtle.digest('SHA-256', encoded);
+    const hex = [...new Uint8Array(buf)].map(x => x.toString(16).padStart(2,'0')).join('');
+    if (hex === ADMIN_HASH) {
       document.getElementById('loginOverlay').style.display = 'none';
       document.getElementById('adminContent').style.display = 'flex';
       loadConfig();
       loadData();
+    } else {
+      const err = document.getElementById('loginError');
+      err.textContent = '\u5BC6\u7801\u9519\u8BEF\uFF0C\u8BF7\u91CD\u8BD5\u3002';
+      document.getElementById('loginInput').value = '';
+      document.getElementById('loginInput').focus();
+      setTimeout(() => err.textContent = '', 3000);
     }
+  }
 
-    // Init: check if already authenticated in this session
-    window.onload = () => {
-      if (sessionStorage.getItem('admin_auth') === '1') {
-        grantAccess();
-      }
-    };
-  </script>
-
-  </div><!-- /adminContent -->
+  // Always require login — no auto-bypass
+  window.onload = () => {
+    document.getElementById('loginInput').focus();
+  };
+</script>
 </body>
 </html>
