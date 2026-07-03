@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>图片智能压缩 - 小乘工具箱</title>
+<style>
+:root {
+  --primary: #059669;
+  --primary-hover: #047857;
+  --bg: #f4f5f6;
+  --card: #ffffff;
+  --text: #171717;
+  --text-muted: #737373;
+  --border: #e5e5e5;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+header {
+  height: 52px;
+  background: #ffffff;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  flex-shrink: 0;
+}
+.logo {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.home-btn {
+  margin-left: auto;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: color 0.2s;
+}
+.home-btn:hover {
+  color: var(--primary);
+}
+
+/* App Container */
+.app-container {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+@media (max-width: 900px) {
+  .app-container {
+    flex-direction: column;
+    overflow: auto;
+  }
+}
+
+/* Aside controls */
+aside {
+  width: 360px;
+  background: #ffffff;
+  border-right: 1px solid var(--border);
+  padding: 24px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  flex-shrink: 0;
+}
+@media (max-width: 900px) {
+  aside {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    overflow-y: visible;
+  }
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.group-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid #f0f0f0;
+  padding-bottom: 6px;
+}
+.control-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.control-item label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  display: flex;
+  justify-content: space-between;
+}
+.control-item label span.val {
+  color: var(--primary);
+  font-weight: bold;
+}
+input[type="range"] {
+  width: 100%;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+select, input[type="number"] {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.88rem;
+  outline: none;
+  font-family: inherit;
+}
+select:focus, input[type="number"]:focus {
+  border-color: var(--primary);
+}
+
+.btn {
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: #ffffff;
+  color: var(--text);
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.btn:hover {
+  background: #f9fafb;
+  border-color: #cbd5e1;
+}
+.btn.primary {
+  background: var(--primary);
+  color: white;
+  border: none;
+}
+.btn.primary:hover {
+  background: var(--primary-hover);
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Dropzone */
+.upload-dropzone {
+  border: 2px dashed var(--border);
+  border-radius: 8px;
+  padding: 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.upload-dropzone:hover, .upload-dropzone.dragover {
+  border-color: var(--primary);
+  background: #f0fdf4;
+}
+.upload-icon {
+  color: var(--text-muted);
+}
+.upload-dropzone:hover .upload-icon {
+  color: var(--primary);
+}
+.upload-text {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.upload-subtext {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* Thumbs */
+.thumbs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-top: 8px;
+  max-height: 120px;
+  overflow-y: auto;
+}
+.thumb {
+  aspect-ratio: 1;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.2s, border-color 0.2s;
+}
+.thumb:hover, .thumb.active {
+  opacity: 1;
+  border-color: var(--primary);
+}
+.thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Main Display */
+main {
+  flex: 1;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+}
+@media (max-width: 900px) {
+  main {
+    min-height: 400px;
+    overflow-y: visible;
+  }
+}
+
+.preview-container {
+  width: 100%;
+  max-width: 800px;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.02);
+}
+
+/* Split-screen Comparison Slider */
+.comparison-slider-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16/10;
+  background: #f8fafc;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  user-select: none;
+}
+.comparison-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.image-before {
+  z-index: 1;
+}
+.image-after {
+  z-index: 2;
+  clip-path: polygon(0 0, 50% 0, 50% 100%, 0 100%);
+}
+.slider-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  background: #ffffff;
+  z-index: 3;
+  cursor: ew-resize;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+.slider-button {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 36px;
+  height: 36px;
+  background: #ffffff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  pointer-events: none;
+  font-weight: bold;
+  color: var(--text);
+  font-size: 0.8rem;
+}
+.image-label {
+  position: absolute;
+  top: 10px;
+  background: rgba(0,0,0,0.6);
+  color: white;
+  padding: 2px 8px;
+  font-size: 0.72rem;
+  border-radius: 4px;
+  z-index: 4;
+}
+.label-before {
+  left: 10px;
+}
+.label-after {
+  right: 10px;
+}
+
+/* Info Box */
+.info-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  border-top: 1px solid #f0f0f0;
+  padding-top: 16px;
+}
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.info-item .lbl {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+.info-item .val {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+.saving-pct {
+  color: #059669;
+}
+
+.empty-state {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-muted);
+}
+
+.hidden {
+  display: none !important;
+}
+</style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">
+      <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
+        <circle cx="9" cy="9" r="2"></circle>
+        <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path>
+      </svg>
+      <span>图片智能压缩</span>
+    </div>
+    <a href="../" class="home-btn">
+      <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+      </svg>
+      返回工具箱首页
+    </a>
+  </header>
+
+  <div class="app-container">
+    <!-- Controls Sidebar -->
+    <aside>
+      <div class="group">
+        <div class="group-title">选择图片</div>
+        <div id="dropzone" class="upload-dropzone">
+          <svg class="upload-icon" viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+          </svg>
+          <div class="upload-text">点击或拖拽上传图片</div>
+          <div class="upload-subtext">支持多选，完全本地运行</div>
+        </div>
+        <input id="fileInput" type="file" accept="image/jpeg,image/png,image/webp" multiple style="display: none;">
+        <div id="thumbs" class="thumbs hidden"></div>
+      </div>
+
+      <div class="group">
+        <div class="group-title">压缩设置</div>
+        
+        <div class="control-item">
+          <label>压缩质量 <span class="val" id="qualityVal">80%</span></label>
+          <input type="range" id="quality" min="10" max="100" value="80">
+        </div>
+
+        <div class="control-item">
+          <label>尺寸缩放 <span class="val" id="scaleVal">100%</span></label>
+          <input type="range" id="scale" min="10" max="100" value="100">
+        </div>
+
+        <div class="control-item">
+          <label>导出格式</label>
+          <select id="format">
+            <option value="image/jpeg">保留原格式 (或转为 JPEG)</option>
+            <option value="image/webp">转换为 WebP (体积更小)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="group">
+        <button class="btn primary" id="downloadBtn" disabled>
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          下载当前压缩图
+        </button>
+        <button class="btn" id="downloadZipBtn" disabled>批量导出 ZIP</button>
+        <button class="btn" id="clearBtn" style="color: #dc2626;">清空所有</button>
+      </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <main>
+      <div id="emptyState" class="empty-state">
+        <svg viewBox="0 0 24 24" width="64" height="64" stroke="#d1d5db" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
+          <circle cx="9" cy="9" r="2"></circle>
+          <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path>
+        </svg>
+        <p>未加载图片，请在左侧上传图片开始压缩</p>
+      </div>
+
+      <div id="previewContainer" class="preview-container hidden">
+        <!-- Interactive Before/After Slider -->
+        <div class="comparison-slider-container" id="sliderContainer">
+          <div class="image-label label-before">原图 (Original)</div>
+          <div class="image-label label-after">压缩后 (Compressed)</div>
+          
+          <img class="comparison-image image-before" id="imgBefore" alt="Before">
+          <img class="comparison-image image-after" id="imgAfter" alt="After">
+          
+          <div class="slider-handle" id="sliderHandle">
+            <div class="slider-button">↔</div>
+          </div>
+        </div>
+
+        <!-- File metrics -->
+        <div class="info-row">
+          <div class="info-item">
+            <span class="lbl">原始大小</span>
+            <span class="val" id="sizeBefore">-</span>
+          </div>
+          <div class="info-item">
+            <span class="lbl">压缩后大小</span>
+            <span class="val" id="sizeAfter">-</span>
+          </div>
+          <div class="info-item">
+            <span class="lbl">节省体积</span>
+            <span class="val saving-pct" id="savingRatio">-</span>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    let files = [];
+    let images = []; // original Image elements
+    let compressedBlobs = []; // compressed Blob elements
+    let currentIndex = 0;
+    let isDragging = false;
+
+    const $ = id => document.getElementById(id);
+
+    // Bind inputs
+    const fileInput = $('fileInput');
+    const dropzone = $('dropzone');
+    const thumbs = $('thumbs');
+    const qualityInput = $('quality');
+    const scaleInput = $('scale');
+    const formatSelect = $('format');
+    const downloadBtn = $('downloadBtn');
+    const downloadZipBtn = $('downloadZipBtn');
+    const clearBtn = $('clearBtn');
+
+    // UI Elements
+    const emptyState = $('emptyState');
+    const previewContainer = $('previewContainer');
+    const imgBefore = $('imgBefore');
+    const imgAfter = $('imgAfter');
+    const sizeBefore = $('sizeBefore');
+    const sizeAfter = $('sizeAfter');
+    const savingRatio = $('savingRatio');
+
+    // Slider setup
+    const sliderContainer = $('sliderContainer');
+    const sliderHandle = $('sliderHandle');
+    const imgAfterClip = $('imgAfter');
+
+    // Dropzone events
+    dropzone.onclick = () => fileInput.click();
+    dropzone.ondragover = e => { e.preventDefault(); dropzone.classList.add('dragover'); };
+    dropzone.ondragleave = () => dropzone.classList.remove('dragover');
+    dropzone.ondrop = e => {
+      e.preventDefault();
+      dropzone.classList.remove('dragover');
+      if (e.dataTransfer.files.length) {
+        fileInput.files = e.dataTransfer.files;
+        fileInput.dispatchEvent(new Event('change'));
+      }
+    };
+
+    fileInput.onchange = async () => {
+      if (!fileInput.files.length) return;
+      setControlsDisabled(true);
+      
+      const newFiles = [...fileInput.files];
+      for (const file of newFiles) {
+        try {
+          const img = await loadImage(file);
+          files.push(file);
+          images.push({ img, origSize: file.size, name: file.name, type: file.type });
+        } catch (err) {
+          console.error("加载图片失败:", file.name, err);
+        }
+      }
+      
+      setControlsDisabled(false);
+      if (images.length > 0) {
+        currentIndex = images.length - newFiles.length; // switch to first newly uploaded image
+        emptyState.classList.add('hidden');
+        previewContainer.classList.remove('hidden');
+        thumbs.classList.remove('hidden');
+        buildThumbs();
+        await compressCurrent();
+      }
+    };
+
+    function setControlsDisabled(disabled) {
+      const el = document.querySelectorAll('aside input, aside select, aside button, .upload-dropzone');
+      el.forEach(e => {
+        if (e.id === 'downloadBtn' || e.id === 'downloadZipBtn') return;
+        if (e.classList.contains('upload-dropzone')) {
+          e.style.pointerEvents = disabled ? 'none' : '';
+          e.style.opacity = disabled ? '0.6' : '';
+        } else {
+          e.disabled = disabled;
+        }
+      });
+    }
+
+    function loadImage(file) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        const url = URL.createObjectURL(file);
+        img.onload = () => {
+          URL.revokeObjectURL(url);
+          resolve(img);
+        };
+        img.onerror = (err) => {
+          URL.revokeObjectURL(url);
+          reject(err);
+        };
+        img.src = url;
+      });
+    }
+
+    function buildThumbs() {
+      thumbs.innerHTML = '';
+      images.forEach((data, i) => {
+        const div = document.createElement('div');
+        div.className = 'thumb' + (i === currentIndex ? ' active' : '');
+        div.onclick = async () => {
+          currentIndex = i;
+          document.querySelectorAll('.thumb').forEach(el => el.classList.remove('active'));
+          div.classList.add('active');
+          await updatePreview();
+        };
+        const img = document.createElement('img');
+        img.src = data.img.src;
+        div.appendChild(img);
+        thumbs.appendChild(div);
+      });
+    }
+
+    // Quality slider
+    qualityInput.oninput = e => {
+      $('qualityVal').textContent = e.target.value + '%';
+    };
+    qualityInput.onchange = async () => {
+      await compressCurrent();
+    };
+
+    // Scale slider
+    scaleInput.oninput = e => {
+      $('scaleVal').textContent = e.target.value + '%';
+    };
+    scaleInput.onchange = async () => {
+      await compressCurrent();
+    };
+
+    formatSelect.onchange = async () => {
+      await compressCurrent();
+    };
+
+    async function compressCurrent() {
+      if (!images.length) return;
+      setControlsDisabled(true);
+      
+      const item = images[currentIndex];
+      const q = Number(qualityInput.value) / 100;
+      const s = Number(scaleInput.value) / 100;
+      
+      let format = formatSelect.value;
+      if (format === 'image/jpeg' && item.type.includes('webp')) {
+        format = 'image/webp'; // WebP fallback
+      } else if (format === 'image/jpeg' && item.type.includes('png')) {
+        format = 'image/jpeg'; // Convert PNG to JPEG
+      } else if (format === 'image/jpeg') {
+        format = item.type; // Keep original
+      }
+
+      const canvas = document.createElement('canvas');
+      const w = Math.max(1, Math.round(item.img.naturalWidth * s));
+      const h = Math.max(1, Math.round(item.img.naturalHeight * s));
+      canvas.width = w;
+      canvas.height = h;
+
+      const ctx = canvas.getContext('2d');
+      // For transparent PNGs converted to JPEG, fill white background
+      if (format === 'image/jpeg') {
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, w, h);
+      }
+      ctx.drawImage(item.img, 0, 0, w, h);
+
+      const blob = await new Promise(resolve => canvas.toBlob(resolve, format, q));
+      compressedBlobs[currentIndex] = blob;
+
+      await updatePreview();
+      setControlsDisabled(false);
+    }
+
+    async function updatePreview() {
+      const item = images[currentIndex];
+      const compBlob = compressedBlobs[currentIndex];
+      if (!item || !compBlob) return;
+
+      imgBefore.src = item.img.src;
+      
+      if (imgAfter.src.startsWith('blob:')) {
+        URL.revokeObjectURL(imgAfter.src);
+      }
+      imgAfter.src = URL.createObjectURL(compBlob);
+
+      sizeBefore.textContent = formatBytes(item.origSize);
+      sizeAfter.textContent = formatBytes(compBlob.size);
+      
+      const saved = item.origSize - compBlob.size;
+      const pct = Math.round((saved / item.origSize) * 100);
+      
+      if (pct > 0) {
+        savingRatio.textContent = `-${pct}% (省 ${formatBytes(saved)})`;
+        savingRatio.className = 'val saving-pct';
+      } else {
+        savingRatio.textContent = `+${Math.abs(pct)}% (体积增加)`;
+        savingRatio.className = 'val';
+      }
+
+      downloadBtn.disabled = false;
+      downloadZipBtn.disabled = false;
+    }
+
+    function formatBytes(b) {
+      if (b < 1024) return b + ' B';
+      if (b < 1048576) return (b / 1024).toFixed(1) + ' KB';
+      return (b / 1048576).toFixed(2) + ' MB';
+    }
+
+    // Comparison slider logic
+    function setSliderPos(x) {
+      const rect = sliderContainer.getBoundingClientRect();
+      let pct = ((x - rect.left) / rect.width) * 100;
+      pct = Math.max(0, Math.min(100, pct));
+      sliderHandle.style.left = pct + '%';
+      imgAfterClip.style.clipPath = `polygon(0 0, ${pct}% 0, ${pct}% 100%, 0 100%)`;
+    }
+
+    sliderContainer.addEventListener('mousedown', e => { isDragging = true; setSliderPos(e.clientX); });
+    window.addEventListener('mouseup', () => isDragging = false);
+    window.addEventListener('mousemove', e => { if (isDragging) setSliderPos(e.clientX); });
+
+    sliderContainer.addEventListener('touchstart', e => { isDragging = true; setSliderPos(e.touches[0].clientX); });
+    window.addEventListener('touchend', () => isDragging = false);
+    window.addEventListener('touchmove', e => { if (isDragging) setSliderPos(e.touches[0].clientX); });
+
+    // Download current
+    downloadBtn.onclick = () => {
+      const blob = compressedBlobs[currentIndex];
+      const item = images[currentIndex];
+      if (!blob || !item) return;
+
+      const format = blob.type;
+      const ext = format === 'image/webp' ? '.webp' : (format === 'image/png' ? '.png' : '.jpg');
+      const name = item.name.replace(/\.[^.]+$/, '') + '_压缩' + ext;
+      
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = name;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    };
+
+    // Zip Export
+    downloadZipBtn.onclick = async () => {
+      if (!images.length) return;
+      setControlsDisabled(true);
+      downloadZipBtn.disabled = true;
+      downloadZipBtn.textContent = '打包中...';
+
+      // Ensure all images are compressed
+      const entries = [];
+      for (let i = 0; i < images.length; i++) {
+        downloadZipBtn.textContent = `压缩中 (${i + 1}/${images.length})...`;
+        if (!compressedBlobs[i]) {
+          currentIndex = i;
+          buildThumbs();
+          await compressCurrent();
+        }
+        const blob = compressedBlobs[i];
+        const item = images[i];
+        const format = blob.type;
+        const ext = format === 'image/webp' ? '.webp' : (format === 'image/png' ? '.png' : '.jpg');
+        const filename = item.name.replace(/\.[^.]+$/, '') + '_压缩' + ext;
+        
+        entries.push({ name: filename, data: new Uint8Array(await blob.arrayBuffer()) });
+      }
+
+      const zipBlob = makeZip(entries);
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(zipBlob);
+      a.download = '批量压缩图片.zip';
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+
+      downloadZipBtn.textContent = '批量导出 ZIP';
+      downloadZipBtn.disabled = false;
+      setControlsDisabled(false);
+    };
+
+    // Zip utility
+    function makeZip(entries) {
+      const encoder = new TextEncoder();
+      const files = [];
+      const central = [];
+      let offset = 0;
+      for (const entry of entries) {
+        const nameBytes = encoder.encode(entry.name);
+        const data = entry.data;
+        const crc = crc32(data);
+        
+        // Local File Header
+        const local = new Uint8Array(30 + nameBytes.length);
+        const localView = new DataView(local.buffer);
+        localView.setUint32(0, 0x04034b50, true);
+        localView.setUint16(4, 20, true);             // Version needed
+        localView.setUint16(6, 0x0800, true);         // UTF-8 flag
+        localView.setUint16(8, 0, true);              // Stored method
+        localView.setUint32(14, crc, true);
+        localView.setUint32(18, data.length, true);
+        localView.setUint32(22, data.length, true);
+        localView.setUint16(26, nameBytes.length, true);
+        local.set(nameBytes, 30);
+        files.push(local, data);
+
+        // Central Directory Header
+        const cd = new Uint8Array(46 + nameBytes.length);
+        const cdView = new DataView(cd.buffer);
+        cdView.setUint32(0, 0x02014b50, true);
+        cdView.setUint16(4, 20, true);                 // Version made by
+        cdView.setUint16(6, 20, true);                 // Version needed
+        cdView.setUint16(8, 0x0800, true);             // UTF-8 flag
+        cdView.setUint32(16, crc, true);
+        cdView.setUint32(20, data.length, true);
+        cdView.setUint32(24, data.length, true);
+        cdView.setUint16(28, nameBytes.length, true);
+        cdView.setUint32(42, offset, true);
+        cd.set(nameBytes, 46);
+        central.push(cd);
+        
+        offset += local.length + data.length;
+      }
+      
+      const centralSize = central.reduce((sum, item) => sum + item.length, 0);
+      const end = new Uint8Array(22);
+      const endView = new DataView(end.buffer);
+      endView.setUint32(0, 0x06054b50, true);
+      endView.setUint16(8, entries.length, true);
+      endView.setUint16(10, entries.length, true);
+      endView.setUint32(12, centralSize, true);
+      endView.setUint32(16, offset, true);
+      
+      return new Blob([...files, ...central, end], { type: 'application/zip' });
+    }
+
+    let crcTable;
+    function crc32(data) {
+      if (!crcTable) {
+        crcTable = new Uint32Array(256);
+        for (let i = 0; i < 256; i++) {
+          let c = i;
+          for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+          crcTable[i] = c >>> 0;
+        }
+      }
+      let crc = 0xffffffff;
+      for (let i = 0; i < data.length; i++) crc = crcTable[(crc ^ data[i]) & 0xff] ^ (crc >>> 8);
+      return (crc ^ 0xffffffff) >>> 0;
+    }
+
+    // Clear
+    clearBtn.onclick = () => {
+      if (!images.length) return;
+      if (confirm('确定清空所有图片吗？')) {
+        files = [];
+        images = [];
+        compressedBlobs = [];
+        currentIndex = 0;
+        
+        if (imgAfter.src.startsWith('blob:')) {
+          URL.revokeObjectURL(imgAfter.src);
+        }
+        
+        emptyState.classList.remove('hidden');
+        previewContainer.classList.add('hidden');
+        thumbs.classList.add('hidden');
+        thumbs.innerHTML = '';
+        
+        downloadBtn.disabled = true;
+        downloadZipBtn.disabled = true;
+      }
+    };
+  </script>
+</body>
+</html>
