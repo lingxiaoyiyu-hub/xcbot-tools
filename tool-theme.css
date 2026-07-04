@@ -66,7 +66,7 @@ body.tool-page .header-inner{
   display:flex;
   align-items:center;
   justify-content:flex-start;
-  gap:12px;
+  gap:20px;
   background:transparent !important;
 }
 
@@ -98,8 +98,8 @@ body.tool-page .header-right{
   display:flex;
   align-items:center;
   gap:10px;
-  flex:0 0 auto;
-  justify-content:flex-start;
+  flex:1;
+  justify-content:flex-end;
 }
 
 /* ── 搜索框：浅底细边（取代深色 header 上的半透明白框）──────────────── */
