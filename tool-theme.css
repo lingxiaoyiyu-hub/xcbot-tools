@@ -487,6 +487,127 @@ body.tool-page textarea::placeholder{
   color:var(--muted-2) !important;
 }
 
+/* ════════════════════════════════════════════════════════════════════════
+   PHASE 2 补遗 — 容器型卡片 / 普通按钮 / 装饰元素漏网补全
+   ────────────────────────────────────────────────────────────────────────
+   首轮 phase 2 覆盖了 .card/.group/.step 等显式卡片类，但各页还有一类
+   "容器型卡片"用内联 CSS 写死纯白底+冷灰边，未纳入统一，导致视觉割裂。
+   此区块补全这些漏网类名，使全站容器型元素彻底统一暖白米色系。
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* ── 容器型卡片补全：typesetter/watermark/compressor/shift-helper ──────── */
+body.tool-page .actionbar,
+body.tool-page .editor-wrap,
+body.tool-page .statusbar,
+body.tool-page .app,
+body.tool-page .app-container,
+body.tool-page .preview-wrap,
+body.tool-page .control-item,
+body.tool-page .calendar-wrap,
+body.tool-page .form-group,
+body.tool-page .controls-row,
+body.tool-page .controls,
+body.tool-page .toolbar,
+body.tool-page .main-content,
+body.tool-page .content-area,
+body.tool-page .work-area{
+  background:var(--bg) !important;
+  color:var(--fg) !important;
+  border:1px solid var(--border) !important;
+  border-radius:9px !important;
+  box-shadow:0 1px 2px rgba(10,10,10,.03) !important;
+}
+
+/* editor-wrap / preview-wrap 通常是无边满屏容器，去掉边框避免双重边框 */
+body.tool-page .editor-wrap,
+body.tool-page .preview-wrap{
+  border:none !important;
+  box-shadow:none !important;
+  background:var(--bg) !important;
+}
+
+/* statusbar / actionbar 是横向工具条，保留底边即可 */
+body.tool-page .actionbar,
+body.tool-page .statusbar{
+  border:none !important;
+  border-bottom:1px solid var(--border) !important;
+  border-radius:0 !important;
+}
+
+/* ── 普通按钮统一：透明底 + 米色边（覆盖各页自定义 btn）────────────────── */
+body.tool-page .btn,
+body.tool-page button,
+body.tool-page .btn-secondary,
+body.tool-page .btn.ghost,
+body.tool-page .btn-ghost{
+  background:var(--bg) !important;
+  color:var(--muted) !important;
+  border:1px solid var(--border) !important;
+  border-radius:8px !important;
+  box-shadow:none !important;
+  text-shadow:none !important;
+  transition:border-color .2s var(--ease), background .2s var(--ease), color .2s var(--ease) !important;
+}
+body.tool-page .btn:hover,
+body.tool-page button:hover,
+body.tool-page .btn-secondary:hover,
+body.tool-page .btn.ghost:hover,
+body.tool-page .btn-ghost:hover{
+  background:var(--bg-subtle) !important;
+  border-color:var(--border-strong) !important;
+  color:var(--fg) !important;
+}
+/* primary 按钮不覆盖（已在上面统一成实心近黑） */
+
+/* ── 装饰元素统一：分隔线 / 数字圆点 / 表格 ─────────────────────────────── */
+/* bsep 分隔线：米色细线 */
+body.tool-page .bsep{
+  background:var(--border) !important;
+}
+
+/* step-num 数字圆圈：实心近黑（与 primary 按钮一致） */
+body.tool-page .step-num{
+  background:var(--fg) !important;
+  color:#fff !important;
+}
+
+/* calendar 表格：暖白底 + 米色边（覆盖 shift-helper 的纯白冷灰） */
+body.tool-page .calendar,
+body.tool-page .calendar th,
+body.tool-page .calendar td{
+  background:var(--bg) !important;
+  border-color:var(--border) !important;
+}
+body.tool-page .calendar th{
+  background:var(--bg-subtle) !important;
+}
+body.tool-page .calendar td.row-label{
+  background:var(--bg-subtle) !important;
+}
+
+/* modal-row 分隔线：米色 */
+body.tool-page .modal-row{
+  border-color:var(--border) !important;
+}
+body.tool-page .modal-row .lbl{ color:var(--muted) !important; }
+body.tool-page .modal-row .val{ color:var(--fg) !important; }
+
+/* modal-close 按钮：暖白底 + 米色边 */
+body.tool-page .modal-close{
+  background:var(--bg-subtle) !important;
+  color:var(--muted) !important;
+  border:1px solid var(--border) !important;
+  border-radius:8px !important;
+}
+body.tool-page .modal-close:hover{
+  background:var(--bg) !important;
+  border-color:var(--border-strong) !important;
+  color:var(--fg) !important;
+}
+
+/* stat 统计文字：深色 */
+body.tool-page .stat{ color:var(--muted) !important; }
+
 /* ── 响应式：窄屏时搜索框换行占满 ────────────────────────────────────── */
 @media (max-width:640px){
   body.tool-page .header-inner{ flex-wrap:wrap; row-gap:10px; }
