@@ -50,12 +50,13 @@ body.tool-page header{
 }
 body.tool-page .header-inner{
   width: 100% !important;
-  max-width:1180px;
+  max-width:1000px;
   margin:0 auto;
-  padding:14px 24px !important;
+  padding:12px 24px !important;
   display:flex;
   align-items:center;
-  gap:20px;
+  justify-content:flex-start;
+  gap:12px;
   background:transparent !important;
 }
 
@@ -64,6 +65,7 @@ body.tool-page .logo{
   display:flex;
   align-items:center;
   gap:10px;
+  min-height:34px;
   text-decoration:none;
   color:var(--fg) !important;
   font-weight:700;
@@ -86,8 +88,8 @@ body.tool-page .header-right{
   display:flex;
   align-items:center;
   gap:10px;
-  flex:1;
-  justify-content:flex-end;
+  flex:0 0 auto;
+  justify-content:flex-start;
 }
 
 /* ── 搜索框：浅底细边（取代深色 header 上的半透明白框）──────────────── */
@@ -131,7 +133,8 @@ body.tool-page .shop-btn{
   display:inline-flex;
   align-items:center;
   gap:7px;
-  padding:8px 16px !important;
+  min-height:34px;
+  padding:8px 15px !important;
   border-radius:8px !important;
   background:var(--fg) !important;
   color:#fff !important;
