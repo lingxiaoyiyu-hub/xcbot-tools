@@ -14,9 +14,6 @@
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
-.header{background:linear-gradient(135deg,#1e3a8a,#2563eb);color:#fff;padding:28px 24px;text-align:center}
-.header h1{font-size:26px;margin-bottom:6px}
-.header p{opacity:.85;font-size:13px}
 .home-btn:hover{color:#ffffff !important;}
 .container{max-width:1200px;margin:0 auto;padding:20px}
 .step{background:var(--card);border-radius:12px;padding:18px 22px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
@@ -105,9 +102,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Micr
 .bw-mode .calendar tr.team-row-3 td.row-label{border-left:4px double #000!important}
 .footer{text-align:center;color:var(--muted);font-size:12px;padding:16px 0 24px}
 @media (max-width:640px){
-  .header{padding:18px 16px}
-  .header h1{font-size:20px}
-  .header p{font-size:11px;line-height:1.5}
   .container{padding:12px}
   .step{padding:14px 14px;border-radius:10px}
   .step-title{font-size:15px;margin-bottom:10px}
@@ -132,7 +126,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Micr
 }
 </style>
 <link rel="stylesheet" href="../shared-white.css">
-  <link rel="stylesheet" href="../tool-theme.css?v=layout-20260705">
+  <link rel="stylesheet" href="../tool-theme.css?v=shift-20260705">
   <link rel="icon" href="../favicon.ico" sizes="any">
   <link rel="icon" href="../favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="../apple-touch-icon.png">
@@ -171,12 +165,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Micr
   </div>
 </header>
 
-<div class="header" style="position: relative;">
-  <h1>🏭 日历排班助手</h1>
-  <p>四班三倒 / 四班两倒 / 三班三倒 / 三班两倒｜化工 · 电厂 · 制药 · 保安通用｜本地运行 数据不外传</p>
-</div>
-
 <div class="container">
+
+<div class="page-head">
+  <div class="page-head-text">
+    <h1 class="page-title">日历排班助手</h1>
+    <p class="page-sub">四班三倒 / 四班两倒 / 三班三倒 / 三班两倒｜化工 · 电厂 · 制药 · 保安通用｜本地运行，数据不外传。</p>
+  </div>
+</div>
 
 <div class="step">
   <div class="step-title"><span class="step-num">1</span>选择班制</div>

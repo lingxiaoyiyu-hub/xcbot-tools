@@ -165,14 +165,31 @@ body.tool-page .shop-btn:active{ transform:translateY(0); }
 body.tool-page .shop-btn svg{ color:#fff !important; stroke:currentColor !important; }
 
 /* ── 工具页标题区：深色标题 + 灰副标题（page-head / pb-page-head 通用）── */
+body.tool-page .page-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  flex-wrap:wrap;
+  margin:4px 0 18px;
+}
+
 body.tool-page .page-title,
 body.tool-page .pb-page-title{
   color:var(--fg) !important;
+  font-size:1.5rem;
   font-weight:700;
   letter-spacing:-.01em;
+  line-height:1.25;
+  margin:0;
 }
 body.tool-page .page-sub,
-body.tool-page .pb-page-sub{ color:var(--muted) !important; }
+body.tool-page .pb-page-sub{
+  color:var(--muted) !important;
+  font-size:.85rem;
+  line-height:1.5;
+  margin:4px 0 0;
+}
 
 /* ── Footer：透明底 + 细顶边（取代强制白底 surface）─────────────────── */
 body.tool-page footer{
