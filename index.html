@@ -20,6 +20,11 @@
     .search-wrap input:focus { background: rgba(255,255,255,.14); border-color: rgba(255,255,255,.45); }
     .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); opacity: .55; pointer-events: none; }
 
+    /* ── Shop button ── */
+    .shop-btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 16px; border-radius: 20px; background: linear-gradient(135deg, #10b981, #06b6d4); color: #fff; font-size: .82rem; font-weight: 700; text-decoration: none; white-space: nowrap; box-shadow: 0 0 12px rgba(16,185,129,.35); transition: transform .15s, box-shadow .15s; }
+    .shop-btn:hover { transform: scale(1.05); box-shadow: 0 0 20px rgba(16,185,129,.55); }
+    .shop-btn .btn-icon { font-style: normal; }
+
     /* ── Main layout ── */
     .main { flex: 1; padding: 28px 0 44px; }
     .main-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 2.2fr 1fr; gap: 20px; padding: 0 20px; align-items: start; }
@@ -55,8 +60,10 @@
     /* ── Responsive ── */
     @media (max-width: 960px) { .main-inner { grid-template-columns: 1fr; } }
     @media (max-width: 680px) {
-      .header-inner { flex-direction: column; align-items: stretch; }
-      .search-wrap { max-width: 100%; }
+      .header-inner { flex-wrap: wrap; }
+      .logo { flex: 1; }
+      .shop-btn { order: 2; }
+      .search-wrap { order: 3; max-width: 100%; flex-basis: 100%; margin-top: 8px; }
       .tools-grid { grid-template-columns: 1fr; }
     }
   </style>
@@ -97,6 +104,9 @@
       </svg>
       <input type="text" id="searchInput" placeholder="搜索工具或分类...">
     </div>
+    <a href="https://pay.ldxp.cn/shop/xcplus" target="_blank" class="shop-btn">
+      <i class="btn-icon">✨</i> 我的小铺
+    </a>
   </div>
 </header>
 
@@ -106,6 +116,57 @@
     <!-- 左：工具列表 -->
     <div class="left-col">
       <div class="tools-grid" id="toolsGrid">
+
+        <!-- AI 会员白菜店 -->
+        <a href="https://pay.ldxp.cn/shop/xcplus" target="_blank" class="tool-card" data-cat="shop" style="border-color:#10b981; background:linear-gradient(135deg,#f0fdf4,#ecfdf5);">
+          <div class="tool-icon">
+            <svg viewBox="0 0 64 64" width="56" height="56" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="g-shop" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+                  <stop offset="0" stop-color="#10b981"/><stop offset="1" stop-color="#065f46"/>
+                </linearGradient>
+              </defs>
+              <rect width="64" height="64" rx="16" fill="url(#g-shop)"/>
+              <circle cx="32" cy="26" r="14" fill="rgba(255,255,255,0.92)"/>
+              <text x="32" y="31" text-anchor="middle" font-size="16" font-weight="900" fill="#059669" font-family="Arial,sans-serif">AI</text>
+              <rect x="12" y="44" width="40" height="14" rx="5" fill="#fbbf24"/>
+              <text x="32" y="54.5" text-anchor="middle" font-size="11" font-weight="900" fill="#fff" font-family="Arial,sans-serif">¥4起</text>
+              <path d="M50 8l1.5 3 3.3.5-2.4 2.3.6 3.3L50 15.5l-3 1.6.6-3.3L45.2 11.5l3.3-.5z" fill="#fef3c7"/>
+            </svg>
+          </div>
+          <div class="tool-info">
+            <div class="tool-name" style="color:#059669;">AI 会员白菜店</div>
+            <div class="tool-desc">Gemini Pro 年卡 ¥18 · GPT Plus ¥4 起，全网白菜价，自动发货即买即用。</div>
+            <span class="tool-tag" style="background:#d1fae5;color:#065f46;border-color:#10b981;">低至¥4</span>
+          </div>
+        </a>
+
+        <!-- 公益站导航 -->
+        <a href="api-nav/" class="tool-card" data-cat="productivity">
+          <div class="tool-icon">
+            <svg viewBox="0 0 64 64" width="56" height="56" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="g-nv" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+                  <stop offset="0" stop-color="#a78bfa"/><stop offset="1" stop-color="#3b0764"/>
+                </linearGradient>
+              </defs>
+              <rect width="64" height="64" rx="16" fill="url(#g-nv)"/>
+              <path d="M10 48 L32 57 L54 48 L32 39 Z" fill="rgba(255,255,255,0.25)"/>
+              <path d="M10 37 L32 46 L54 37 L32 28 Z" fill="rgba(255,255,255,0.52)"/>
+              <path d="M10 26 L32 35 L54 26 L32 17 Z" fill="rgba(255,255,255,0.92)"/>
+              <circle cx="32" cy="26" r="4" fill="#7c3aed"/>
+              <circle cx="19" cy="26" r="2.5" fill="rgba(167,139,250,0.7)"/>
+              <circle cx="45" cy="26" r="2.5" fill="rgba(167,139,250,0.7)"/>
+              <line x1="32" y1="26" x2="19" y2="26" stroke="rgba(124,58,237,0.5)" stroke-width="1.5"/>
+              <line x1="32" y1="26" x2="45" y2="26" stroke="rgba(124,58,237,0.5)" stroke-width="1.5"/>
+            </svg>
+          </div>
+          <div class="tool-info">
+            <div class="tool-name">公益站导航</div>
+            <div class="tool-desc">免费大模型、AI 绘图、公益中转站导航，整理可直接打开使用的 AI 资源。</div>
+            <span class="tool-tag">效率工具</span>
+          </div>
+        </a>
 
         <!-- 图片水印助手 -->
         <a href="watermark/" class="tool-card" data-cat="image">
@@ -350,33 +411,6 @@
           <div class="tool-info">
             <div class="tool-name">噪音时钟</div>
             <div class="tool-desc">白噪音与番茄钟结合，提升专注与休息质量。</div>
-            <span class="tool-tag">效率工具</span>
-          </div>
-        </a>
-
-        <!-- 公益站导航 -->
-        <a href="api-nav/" class="tool-card" data-cat="productivity">
-          <div class="tool-icon">
-            <svg viewBox="0 0 64 64" width="56" height="56" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <linearGradient id="g-nv" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
-                  <stop offset="0" stop-color="#a78bfa"/><stop offset="1" stop-color="#3b0764"/>
-                </linearGradient>
-              </defs>
-              <rect width="64" height="64" rx="16" fill="url(#g-nv)"/>
-              <path d="M10 48 L32 57 L54 48 L32 39 Z" fill="rgba(255,255,255,0.25)"/>
-              <path d="M10 37 L32 46 L54 37 L32 28 Z" fill="rgba(255,255,255,0.52)"/>
-              <path d="M10 26 L32 35 L54 26 L32 17 Z" fill="rgba(255,255,255,0.92)"/>
-              <circle cx="32" cy="26" r="4" fill="#7c3aed"/>
-              <circle cx="19" cy="26" r="2.5" fill="rgba(167,139,250,0.7)"/>
-              <circle cx="45" cy="26" r="2.5" fill="rgba(167,139,250,0.7)"/>
-              <line x1="32" y1="26" x2="19" y2="26" stroke="rgba(124,58,237,0.5)" stroke-width="1.5"/>
-              <line x1="32" y1="26" x2="45" y2="26" stroke="rgba(124,58,237,0.5)" stroke-width="1.5"/>
-            </svg>
-          </div>
-          <div class="tool-info">
-            <div class="tool-name">公益站导航</div>
-            <div class="tool-desc">免费大模型、AI 绘图、公益中转站导航，整理可直接打开使用的 AI 资源。</div>
             <span class="tool-tag">效率工具</span>
           </div>
         </a>
