@@ -337,11 +337,39 @@ button.secondary,
 
 .btn-warn,
 .tip,
-#announceBanner,
 .toast.info {
   color: var(--ui-warn) !important;
   border-color: #fed7aa !important;
   background: #fff7ed !important;
+}
+
+#announceBanner {
+  background: linear-gradient(90deg, #fffbeb, #fef3c7) !important;
+  border-bottom: 1px solid #fde68a !important;
+  color: var(--ui-warn) !important;
+  display: none;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 24px;
+  font-size: .88rem;
+  position: sticky;
+  top: 56px;
+  z-index: 9;
+}
+
+#announceBanner button {
+  background: none !important;
+  border: none !important;
+  color: var(--ui-warn) !important;
+  cursor: pointer;
+  font-size: 1.1rem;
+  opacity: .7;
+  padding: 0 4px;
+}
+
+#announceBanner button:hover {
+  opacity: 1;
+  background: none !important;
 }
 
 input,
