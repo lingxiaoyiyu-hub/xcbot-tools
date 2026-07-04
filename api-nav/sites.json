@@ -1,7 +1,7 @@
 {
   "announcement": {
-    "enabled": true,
-    "text": "如遇站点失效或其他问题，可以反馈给我\n如果有好的站点，也可以投稿"
+    "enabled": false,
+    "text": ""
   },
   "sites": [
     {
@@ -35,6 +35,17 @@
       "url": "https://cccctoken.com/register?aff=lingxiao",
       "description": "注册60刀，邀请送10刀，1倍率，邮箱注册，目前可以调用，活动随时关闭。\n目前赠送额度只支持 GPT5.5  GPT5.4",
       "tags": []
+    },
+    {
+      "id": "1783155741805",
+      "date": "2026-07-04",
+      "name": "VipJ3",
+      "domain": "https://vip.j3gb.com/register?aff=A3YM8QJ5LDFX",
+      "url": "https://vip.j3gb.com/register?aff=A3YM8QJ5LDFX",
+      "description": "注册赠送15刀，邀请1人赠送30刀，半免费性质，模型很多很稳定，亲测可用，推荐！\n\n注意：站点为了防止滥用关闭普通注册，但是留了另外一个接口，可用QQ邮箱和gmail邮箱注册。",
+      "tags": [
+        "稳定"
+      ]
     }
   ]
 }
