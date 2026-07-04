@@ -36,6 +36,9 @@
 ### 公益站导航
 ![公益站导航](docs/screenshots/api-nav.png)
 
+### 临时邮箱聚合导航
+![临时邮箱聚合导航](docs/screenshots/temp-mail.png)
+
 ### 图片水印助手
 ![图片水印助手](docs/screenshots/watermark.png)
 
