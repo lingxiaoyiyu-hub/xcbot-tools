@@ -834,3 +834,12 @@ body.tool-page #editor{
   padding-right:var(--tool-gutter) !important;
   box-sizing:border-box !important;
 }
+
+/* api-nav 筛选栏不是内容卡片，去掉统一容器补全带来的外框。 */
+body.tool-page.api-nav-page .controls-row{
+  background:transparent !important;
+  border:none !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+  padding:0 0 16px !important;
+}
