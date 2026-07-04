@@ -167,6 +167,326 @@ body.tool-page footer{
   box-shadow:none !important;
 }
 
+/* ════════════════════════════════════════════════════════════════════════
+   PHASE 2 — 卡片层统一规则（暖白米色系，与首页完全一致）
+   ────────────────────────────────────────────────────────────────────────
+   目标：把全站 14+ 种卡片类名（.card / .site-card / .info-card / .group /
+   .step / .panel / .schedule-card / .team-card / .hero / .preview-container /
+   .upload-dropzone / .window-frame / .dashboard-hero / .installer-panel 等）
+   的底色/边框/圆角/hover 统一成首页的暖白米色系，压过 shared-white.css
+   强制的纯白冷灰系。
+
+   原则：
+     - 全部以 body.tool-page 命名空间限定，特异性高于 shared-white.css
+       的裸类选择器，稳定胜出。
+     - 需要压 !important 处一律用 !important。
+     - 不动 shared-white.css 本体、不动各页内联 CSS、不动功能 JS。
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* ── 卡片基类：统一底色/边框/圆角/阴影 ────────────────────────────────── */
+/* 覆盖 shared-white.css 第 138-181 行的纯白冷灰 10px 圆角规则 */
+body.tool-page .card,
+body.tool-page .site-card,
+body.tool-page .info-card,
+body.tool-page .group,
+body.tool-page .step,
+body.tool-page .panel,
+body.tool-page .schedule-card,
+body.tool-page .team-card,
+body.tool-page .hero,
+body.tool-page .info-item,
+body.tool-page .list-item,
+body.tool-page .window-frame,
+body.tool-page .window-body,
+body.tool-page .dashboard-hero,
+body.tool-page .installer-panel,
+body.tool-page .network-diagnostic-card,
+body.tool-page .network-actions-card,
+body.tool-page .console-section,
+body.tool-page .checklist-card,
+body.tool-page .sound-item,
+body.tool-page .file-item,
+body.tool-page .installer-item,
+body.tool-page .remedy-step,
+body.tool-page .preview-container,
+body.tool-page .upload-dropzone,
+body.tool-page .field,
+body.tool-page .modal,
+body.tool-page .empty-state,
+body.tool-page .comparison-slider-container,
+body.tool-page .network-status-details{
+  background:var(--bg) !important;
+  color:var(--fg) !important;
+  border:1px solid var(--border) !important;
+  border-radius:9px !important;
+  box-shadow:0 1px 2px rgba(10,10,10,.03) !important;
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+}
+
+/* ── 卡片 hover：米色边框加深 + 轻微上浮（与首页 tool-card 一致）──────── */
+body.tool-page .card:hover,
+body.tool-page .site-card:hover,
+body.tool-page .info-card:hover,
+body.tool-page .group:hover,
+body.tool-page .step:hover,
+body.tool-page .panel:hover,
+body.tool-page .schedule-card:hover,
+body.tool-page .team-card:hover,
+body.tool-page .hero:hover,
+body.tool-page .list-item:hover,
+body.tool-page .file-item:hover,
+body.tool-page .installer-item:hover,
+body.tool-page .preview-container:hover,
+body.tool-page .upload-dropzone:hover{
+  background:var(--bg) !important;
+  border-color:var(--border-strong) !important;
+  box-shadow:0 4px 14px rgba(0,0,0,.06) !important;
+}
+
+/* ── 卡片内标题：深色 fg（覆盖 shared-white 的 currentColor 继承）──────── */
+body.tool-page .card-title,
+body.tool-page .group-title,
+body.tool-page .panel-title,
+body.tool-page .step-title,
+body.tool-page .info-title,
+body.tool-page .modal-title,
+body.tool-page .site-title{
+  color:var(--fg) !important;
+  -webkit-text-fill-color:currentColor !important;
+}
+
+/* ── 卡片内描述/副标题：灰色 muted ───────────────────────────────────── */
+body.tool-page .card-info p,
+body.tool-page .card-info,
+body.tool-page .site-desc,
+body.tool-page .article-desc,
+body.tool-page .tool-desc,
+body.tool-page .info-line,
+body.tool-page .step-desc{
+  color:var(--muted) !important;
+}
+
+/* ── 徽章/pill/tag：透明底 + 彩色圆点 + 米色细边（与首页 tool-tag 一致）── */
+/* 覆盖 shared-white.css 第 455-467 行的纯白填充冷灰边 pill */
+body.tool-page .pill,
+body.tool-page .card-tag,
+body.tool-page .badge,
+body.tool-page .status-badge,
+body.tool-page .file-pages,
+body.tool-page .meta-tag,
+body.tool-page .latency-indicator,
+body.tool-page .chip,
+body.tool-page .card-tag.model{
+  background:transparent !important;
+  color:var(--muted-2) !important;
+  border:1px solid var(--border) !important;
+  border-radius:99px !important;
+  box-shadow:none !important;
+  font-family:var(--mono, var(--sans)) !important;
+  font-weight:500;
+}
+
+/* 徽章前缀圆点（若元素有 ::before 圆点，统一成 muted 灰） */
+body.tool-page .pill::before,
+body.tool-page .card-tag::before,
+body.tool-page .badge::before{
+  background:var(--muted-2) !important;
+}
+
+/* ── 网格容器：统一 gap 间距 ──────────────────────────────────────────── */
+body.tool-page .grid,
+body.tool-page .sites-grid,
+body.tool-page .schedule-cards,
+body.tool-page .teams-grid,
+body.tool-page .checklist-grid,
+body.tool-page .prompts-grid,
+body.tool-page .related-grid,
+body.tool-page .field-grid{
+  gap:12px !important;
+}
+
+/* 缩略图网格稍紧凑 */
+body.tool-page .thumbs{ gap:8px !important; }
+
+/* ── 按钮态卡片（筛选/标签按钮）：透明底 + 米色边 ─────────────────────── */
+/* 覆盖 shared-white.css 第 298-319 行的纯白填充按钮 */
+body.tool-page .tag-btn,
+body.tool-page .filter-btn,
+body.tool-page .angle-btn,
+body.tool-page .page-chk,
+body.tool-page .file-btn,
+body.tool-page .visit-btn,
+body.tool-page .feedback-btn,
+body.tool-page .tab-btn,
+body.tool-page .action-btn,
+body.tool-page .copy-btn,
+body.tool-page .related-card,
+body.tool-page .load-more-btn{
+  background:var(--bg) !important;
+  color:var(--muted) !important;
+  border:1px solid var(--border) !important;
+  border-radius:8px !important;
+  box-shadow:none !important;
+  text-shadow:none !important;
+  transition:border-color .2s var(--ease), background .2s var(--ease), color .2s var(--ease) !important;
+}
+
+/* hover：米色边加深 + 文字变深 */
+body.tool-page .tag-btn:hover,
+body.tool-page .filter-btn:hover,
+body.tool-page .angle-btn:hover,
+body.tool-page .page-chk:hover,
+body.tool-page .file-btn:hover,
+body.tool-page .visit-btn:hover,
+body.tool-page .feedback-btn:hover,
+body.tool-page .tab-btn:hover,
+body.tool-page .action-btn:hover,
+body.tool-page .copy-btn:hover,
+body.tool-page .related-card:hover,
+body.tool-page .load-more-btn:hover{
+  background:var(--bg-subtle) !important;
+  border-color:var(--border-strong) !important;
+  color:var(--fg) !important;
+}
+
+/* active 态：实心近黑（与首页 tab.active 一致） */
+body.tool-page .tag-btn.active,
+body.tool-page .filter-btn.active,
+body.tool-page .angle-btn.active,
+body.tool-page .page-chk.checked,
+body.tool-page .tab-btn.active,
+body.tool-page .chip.active{
+  background:var(--fg) !important;
+  color:#fff !important;
+  border-color:var(--fg) !important;
+}
+
+/* 主操作按钮：实心近黑（与首页 shop-btn 一致，覆盖 shared-white 的蓝/绿） */
+body.tool-page .btn-primary,
+body.tool-page .btn.primary,
+body.tool-page button.primary,
+body.tool-page .login-btn,
+body.tool-page #repairBtn,
+body.tool-page #generateBtn,
+body.tool-page #downloadBtn,
+body.tool-page #merge-btn,
+body.tool-page #split-btn,
+body.tool-page #rotate-btn,
+body.tool-page #extract-btn,
+body.tool-page #playBtn,
+body.tool-page .action-btn.primary,
+body.tool-page .copy-btn-full{
+  background:var(--fg) !important;
+  color:#fff !important;
+  border:1px solid var(--fg) !important;
+  border-radius:8px !important;
+  box-shadow:none !important;
+}
+body.tool-page .btn-primary:hover,
+body.tool-page .btn.primary:hover,
+body.tool-page button.primary:hover,
+body.tool-page .login-btn:hover,
+body.tool-page #repairBtn:hover,
+body.tool-page #generateBtn:hover,
+body.tool-page #downloadBtn:hover,
+body.tool-page .action-btn.primary:hover,
+body.tool-page .copy-btn-full:hover{
+  background:#1a1a1a !important;
+  border-color:#1a1a1a !important;
+  color:#fff !important;
+}
+
+/* ── 卡片内分隔线：米色细边（覆盖 shared-white 的冷灰）────────────────── */
+body.tool-page .card-actions,
+body.tool-page .card-body,
+body.tool-page .modal-prompt{
+  border-color:var(--border) !important;
+}
+
+/* ── system-repair 专属：theme-dark 下强制浅色（与全站一致）────────────── */
+/* system-repair 是唯一用 theme-dark + 独立 style.css 的页面。
+   tool-theme.css 的 body.tool-page 已把背景强制成暖白，但 style.css 里
+   的 .window-frame / .dashboard-hero 等有深色覆盖，需用更高特异性压过。 */
+body.tool-page.theme-dark .window-frame,
+body.tool-page.theme-dark .window-body,
+body.tool-page.theme-dark .dashboard-hero,
+body.tool-page.theme-dark .installer-panel,
+body.tool-page.theme-dark .network-diagnostic-card,
+body.tool-page.theme-dark .network-actions-card,
+body.tool-page.theme-dark .console-section,
+body.tool-page.theme-dark .checklist-card,
+body.tool-page.theme-dark .installer-item,
+body.tool-page.theme-dark .remedy-step,
+body.tool-page.theme-dark .network-status-details{
+  background:var(--bg) !important;
+  color:var(--fg) !important;
+  border:1px solid var(--border) !important;
+  border-radius:9px !important;
+  box-shadow:0 1px 2px rgba(10,10,10,.03) !important;
+}
+
+/* system-repair 控制台保留深色（代码终端风格，符合语义） */
+body.tool-page.theme-dark .console-body,
+body.tool-page.theme-dark .log-output{
+  background:#0a0a0a !important;
+  color:#f9fafb !important;
+  border:1px solid var(--border) !important;
+  border-radius:9px !important;
+}
+
+/* system-repair 的模拟桌面窗口装饰元素：统一成浅色细边 */
+body.tool-page.theme-dark .window-titlebar,
+body.tool-page.theme-dark .statusbar,
+body.tool-page.theme-dark .actionbar{
+  background:var(--bg) !important;
+  color:var(--fg) !important;
+  border-color:var(--border) !important;
+  box-shadow:none !important;
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+}
+
+/* system-repair 装饰光球已由 shared-white 隐藏，这里确认 */
+body.tool-page.theme-dark .background-decorations,
+body.tool-page.theme-dark .glow-orb,
+body.tool-page.theme-dark .orb-1,
+body.tool-page.theme-dark .orb-2,
+body.tool-page.theme-dark .orb-3{
+  display:none !important;
+}
+
+/* ── 输入框统一：暖白底 + 米色边（覆盖 shared-white 的纯白冷灰）────────── */
+body.tool-page input,
+body.tool-page textarea,
+body.tool-page select,
+body.tool-page .form-input,
+body.tool-page .form-textarea,
+body.tool-page .login-input,
+body.tool-page .search-input{
+  background:var(--bg-subtle) !important;
+  color:var(--fg) !important;
+  border:1px solid var(--border) !important;
+  border-radius:8px !important;
+  box-shadow:none !important;
+}
+body.tool-page input:focus,
+body.tool-page textarea:focus,
+body.tool-page select:focus,
+body.tool-page .form-input:focus,
+body.tool-page .form-textarea:focus,
+body.tool-page .login-input:focus,
+body.tool-page .search-input:focus{
+  border-color:var(--fg) !important;
+  background:var(--bg) !important;
+  box-shadow:0 0 0 3px rgba(10,10,10,.08) !important;
+  outline:none !important;
+}
+body.tool-page input::placeholder,
+body.tool-page textarea::placeholder{
+  color:var(--muted-2) !important;
+}
+
 /* ── 响应式：窄屏时搜索框换行占满 ────────────────────────────────────── */
 @media (max-width:640px){
   body.tool-page .header-inner{ flex-wrap:wrap; row-gap:10px; }
