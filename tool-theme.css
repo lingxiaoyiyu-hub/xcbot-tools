@@ -36,6 +36,14 @@ body.tool-page{
   -webkit-font-smoothing:antialiased;
 }
 
+/* system-repair 的独立样式把 body 设为居中 flex，导致全站顶栏被当作
+   主窗口旁边的一个 flex 子项；这里只恢复页面外壳的正常文档流。 */
+body.tool-page.theme-dark{
+  display:block !important;
+  justify-content:flex-start !important;
+  align-items:stretch !important;
+}
+
 /* ── Header：暖白底 + 细边框（取代 prompts 的深色 header / api 的玻璃拟态）── */
 body.tool-page header{
   display: block !important;
