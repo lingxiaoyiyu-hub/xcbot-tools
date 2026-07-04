@@ -38,6 +38,7 @@ body.tool-page{
 
 /* ── Header：暖白底 + 细边框（取代 prompts 的深色 header / api 的玻璃拟态）── */
 body.tool-page header{
+  display: block !important;
   background:var(--bg) !important;
   border-bottom:1px solid var(--border) !important;
   height:auto !important;
@@ -48,6 +49,7 @@ body.tool-page header{
   position:static !important;
 }
 body.tool-page .header-inner{
+  width: 100% !important;
   max-width:1180px;
   margin:0 auto;
   padding:14px 24px !important;
