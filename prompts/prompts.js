@@ -18,7 +18,7 @@
 (function () {
   'use strict';
 
-  var DATA_URL = '/prompts/data/aiart-prompts.json';
+  var DATA_URL = './data/aiart-prompts.json';
   var allItems = [];
   var filteredItems = [];   // 当前搜索+筛选后的完整结果集
   var currentCat = '全部';
