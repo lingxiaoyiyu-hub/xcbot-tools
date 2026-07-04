@@ -38,6 +38,17 @@
         "生图",
         "稳定"
       ]
+    },
+    {
+      "id": "1783140444863",
+      "date": "2026-07-04",
+      "name": "Aerolink",
+      "domain": "https://aerolink.lat/register?ref=LWFUL-S",
+      "url": "https://aerolink.lat/register?ref=LWFUL-S",
+      "description": "注册送1个月pro会员，每5小时10＄额度，每周70＄额度，只支持claude模型，实测稳定！\n注意：注册后需要用TG，关注一下站点频道，才可以激活pro会员。",
+      "tags": [
+        "稳定"
+      ]
     }
   ]
 }
