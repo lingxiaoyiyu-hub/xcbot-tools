@@ -1,13 +1,18 @@
 /* AI 绘图提示词库 — 前端逻辑（原生 JS，零依赖）
  *
  * 功能：
- *   1. fetch prompts/data/aiart-prompts.json
- *   2. 渲染前 300 条提示词卡片
- *   3. 搜索（标题/作者/prompt/标签）
+ *   1. fetch prompts/data/aiart-prompts.json（一次性加载全量数据）
+ *   2. 分页渲染：首屏 60 条，"加载更多"每次追加 60 条（不一次性插入全部 DOM）
+ *   3. 搜索（标题/作者/prompt/标签）— 基于完整 allItems，非仅当前已显示
  *   4. 分类筛选（全部/摄影/插画/3D/海报/UI/产品图/表情包）
- *   5. 一键复制（剪贴板 + "已复制"反馈）
- *   6. 图片加载失败 → 灰色占位
- *   7. 详情弹层（完整 prompt + 全部元信息）
+ *   5. 搜索或切换分类后，分页重置，从第 1 页重新显示
+ *   6. 一键复制（剪贴板 + "已复制"反馈）
+ *   7. 图片加载失败 → 灰色占位
+ *   8. 详情弹层（完整 prompt + 全部元信息）
+ *
+ * 搜索框说明：
+ *   - 主体大搜索框 #promptSearchInput 是提示词库主搜索（位于页面标题与分类筛选之间）
+ *   - header 顶部 #searchInput 保留，与主体搜索框双向同步
  */
 
 (function () {
@@ -15,15 +20,22 @@
 
   var DATA_URL = '/prompts/data/aiart-prompts.json';
   var allItems = [];
+  var filteredItems = [];   // 当前搜索+筛选后的完整结果集
   var currentCat = '全部';
   var currentQuery = '';
 
+  // 分页
+  var PAGE_SIZE = 60;
+  var shownCount = 0;       // 当前已渲染到 DOM 的条数
+
   // DOM
   var grid = document.getElementById('promptsGrid');
-  var searchInput = document.getElementById('searchInput');
+  var promptSearchInput = document.getElementById('promptSearchInput');   // 主体大搜索框
+  var headerSearchInput = document.getElementById('searchInput');          // header 顶部搜索框（可选，做同步）
   var filters = document.getElementById('filters');
   var resultCount = document.getElementById('resultCount');
   var emptyState = document.getElementById('emptyState');
+  var loadMoreBtn = document.getElementById('loadMoreBtn');
   var modalOverlay = document.getElementById('modalOverlay');
   var modalClose = document.getElementById('modalClose');
   var modalImg = document.getElementById('modalImg');
@@ -98,18 +110,69 @@
     );
   }
 
-  /** 渲染整个列表。 */
-  function renderList(items) {
-    var html = items.map(renderCard).join('');
-    grid.innerHTML = html;
-    emptyState.style.display = items.length === 0 ? 'block' : 'none';
-    resultCount.textContent = '共 ' + items.length + ' 条' + (allItems.length > items.length ? '（已筛选自 ' + allItems.length + ' 条）' : '');
+  /** 更新结果计数文案。 */
+  function updateResultCount() {
+    var total = filteredItems.length;
+    var shown = Math.min(shownCount, total);
+    var isFiltered = (currentQuery !== '' || currentCat !== '全部');
+    if (isFiltered) {
+      resultCount.textContent = '共 ' + total + ' 条匹配结果，已显示 ' + shown + ' 条';
+    } else {
+      resultCount.textContent = '共 ' + total + ' 条，已显示 ' + shown + ' 条';
+    }
   }
 
-  /** 应用搜索 + 分类筛选。 */
+  /** 更新"加载更多"按钮的可见性。 */
+  function updateLoadMoreBtn() {
+    if (!loadMoreBtn) return;
+    if (shownCount >= filteredItems.length) {
+      loadMoreBtn.style.display = 'none';
+    } else {
+      loadMoreBtn.style.display = '';
+    }
+  }
+
+  /** 渲染指定范围的卡片并追加到 DOM。 */
+  function appendCards(start, end) {
+    var slice = filteredItems.slice(start, end);
+    if (slice.length === 0) return;
+    var html = slice.map(renderCard).join('');
+    grid.insertAdjacentHTML('beforeend', html);
+  }
+
+  /** 重置分页并重新渲染首屏。 */
+  function resetAndRender() {
+    shownCount = 0;
+    grid.innerHTML = '';
+    emptyState.style.display = 'none';
+    if (filteredItems.length === 0) {
+      emptyState.style.display = 'block';
+      updateResultCount();
+      updateLoadMoreBtn();
+      return;
+    }
+    var end = Math.min(PAGE_SIZE, filteredItems.length);
+    appendCards(0, end);
+    shownCount = end;
+    updateResultCount();
+    updateLoadMoreBtn();
+  }
+
+  /** 加载下一页。 */
+  function loadNextPage() {
+    if (shownCount >= filteredItems.length) return;
+    var start = shownCount;
+    var end = Math.min(start + PAGE_SIZE, filteredItems.length);
+    appendCards(start, end);
+    shownCount = end;
+    updateResultCount();
+    updateLoadMoreBtn();
+  }
+
+  /** 应用搜索 + 分类筛选（基于完整 allItems），并重置分页。 */
   function applyFilter() {
     var q = currentQuery.toLowerCase();
-    var filtered = allItems.filter(function (item) {
+    filteredItems = allItems.filter(function (item) {
       // 分类筛选
       if (currentCat !== '全部') {
         var tags = item.tags || [];
@@ -127,7 +190,7 @@
       }
       return true;
     });
-    renderList(filtered);
+    resetAndRender();
   }
 
   /** 图片加载失败 → 灰色占位。 */
@@ -200,13 +263,32 @@
 
   // ── 事件绑定 ──
 
-  // 搜索（input 防抖）
+  // 主体搜索框（input 防抖）— 提示词库主搜索
   var searchTimer = null;
-  searchInput.addEventListener('input', function () {
-    currentQuery = searchInput.value.trim();
-    clearTimeout(searchTimer);
-    searchTimer = setTimeout(applyFilter, 180);
-  });
+  if (promptSearchInput) {
+    promptSearchInput.addEventListener('input', function () {
+      currentQuery = promptSearchInput.value.trim();
+      // 同步到 header 搜索框
+      if (headerSearchInput && headerSearchInput.value !== currentQuery) {
+        headerSearchInput.value = currentQuery;
+      }
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(applyFilter, 180);
+    });
+  }
+
+  // header 搜索框 — 与主体搜索框同步（不独立触发，避免双重渲染）
+  if (headerSearchInput) {
+    headerSearchInput.addEventListener('input', function () {
+      var v = headerSearchInput.value.trim();
+      if (promptSearchInput && promptSearchInput.value !== v) {
+        promptSearchInput.value = v;
+        currentQuery = v;
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(applyFilter, 180);
+      }
+    });
+  }
 
   // 分类筛选
   filters.addEventListener('click', function (e) {
@@ -220,6 +302,11 @@
     });
     applyFilter();
   });
+
+  // "加载更多"按钮
+  if (loadMoreBtn) {
+    loadMoreBtn.addEventListener('click', loadNextPage);
+  }
 
   // 卡片内事件委托（复制 / 详情 / 图片错误）
   grid.addEventListener('click', function (e) {
@@ -272,5 +359,6 @@
       emptyState.textContent = '数据加载失败，请稍后重试。';
       emptyState.style.display = 'block';
       resultCount.textContent = '';
+      if (loadMoreBtn) loadMoreBtn.style.display = 'none';
     });
 })();

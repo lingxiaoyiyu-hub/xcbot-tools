@@ -29,6 +29,33 @@ header { background: #24292f; padding: 14px 0; }
 .shop-mini { display: inline-flex; align-items: center; padding: 8px 16px; border-radius: 8px; background: #fff; border: 1px solid #d0d7de; color: #0969da; font-size: .82rem; font-weight: 600; text-decoration: none; transition: border-color .15s, box-shadow .15s; white-space: nowrap; }
 .shop-mini:hover { border-color: #0969da; box-shadow: 0 2px 8px rgba(9,105,218,.1); }
 
+/* ── 主体大搜索框（提示词库主搜索） ── */
+.prompt-search-wrap { position: relative; margin-bottom: 14px; }
+.prompt-search-wrap input {
+  width: 100%;
+  padding: 12px 16px 12px 44px;
+  border-radius: 8px;
+  border: 1px solid #d0d7de;
+  background: #fff;
+  color: #24292f;
+  font-size: .95rem;
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+  font-family: inherit;
+}
+.prompt-search-wrap input::placeholder { color: #8c959f; }
+.prompt-search-wrap input:focus {
+  border-color: #0969da;
+  box-shadow: 0 0 0 3px rgba(9,105,218,.15);
+}
+.prompt-search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
 /* ── 分类筛选 ── */
 .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
 .filter-btn { padding: 6px 14px; border-radius: 99px; font-size: .82rem; font-weight: 500; cursor: pointer; transition: all .15s; background: #fff; color: #57606a; border: 1px solid #d0d7de; font-family: inherit; }
@@ -68,6 +95,27 @@ header { background: #24292f; padding: 14px 0; }
 .action-btn.primary { background: #0969da; border-color: #0969da; color: #fff; }
 .action-btn.primary:hover { background: #0860c7; }
 .action-btn.copied { background: #1a7f37; border-color: #1a7f37; color: #fff; }
+
+/* ── 加载更多按钮 ── */
+.load-more-wrap { display: flex; justify-content: center; margin-top: 22px; }
+.load-more-btn {
+  padding: 10px 32px;
+  border-radius: 8px;
+  border: 1px solid #d0d7de;
+  background: #fff;
+  color: #24292f;
+  font-size: .88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color .15s, color .15s, background .15s;
+  font-family: inherit;
+}
+.load-more-btn:hover {
+  border-color: #0969da;
+  color: #0969da;
+  background: #f6fbff;
+}
+.load-more-btn:active { background: #eff6ff; }
 
 /* ── 空状态 ── */
 .empty-state { text-align: center; padding: 60px 20px; color: #8c959f; font-size: .88rem; background: #fff; border: 1px solid #d0d7de; border-radius: 8px; }

@@ -7,7 +7,7 @@
  * 功能：
  *   1. 下载 raw README.md（Node 原生 https，零第三方依赖）
  *   2. 保存原始文件到 data/sources/awesome-aiart-pics-prompts/README.md
- *   3. 用状态机解析前 300 条提示词，输出到 prompts/data/aiart-prompts.json
+ *   3. 用状态机解析全部可解析条目（跳过严重缺字段者），输出到 prompts/data/aiart-prompts.json
  *
  * README 结构（已实测样本）：
  *   ## 作者名                              ← 作者块（同作者后续条目无 ##）
@@ -34,7 +34,9 @@ const path = require('path');
 const README_URL = 'https://raw.githubusercontent.com/Jermic/awesome-aiart-pics-prompts/refs/heads/master/README.md';
 const ORIGIN_REPO = 'https://github.com/Jermic/awesome-aiart-pics-prompts';
 const LICENSE = 'CC BY 4.0';
-const MAX_ITEMS = 300;
+// 第一版曾限制 300 条，现已改为导入全部可解析条目。
+// 跳过条件：prompt 正文为空（提示词库的核心字段缺失即视为严重缺字段）。
+const SKIP_IF_NO_PROMPT = true;
 
 // 仓库根目录 = 脚本所在目录的上一级
 const ROOT = path.resolve(__dirname, '..');
@@ -311,14 +313,21 @@ async function main() {
 
   console.log('[3/4] 解析 README ...');
   const allItems = parseReadme(md);
-  console.log('      共解析出 ' + allItems.length + ' 条提示词');
+  const totalParsed = allItems.length;
+  console.log('      共解析出 ' + totalParsed + ' 条提示词条目');
 
-  // 取前 MAX_ITEMS 条，并补全字段
+  // 导入全部可解析条目；跳过严重缺字段者（prompt 正文为空）
   const usedSlugs = new Set();
-  const out = allItems.slice(0, MAX_ITEMS).map((it, idx) => {
+  const skipped = [];
+  const out = [];
+  allItems.forEach((it, idx) => {
+    if (SKIP_IF_NO_PROMPT && !it.prompt) {
+      skipped.push({ index: idx, title: it.title, reason: '无 prompt 正文' });
+      return;
+    }
     const slug = makeSlug(it.detailUrl, idx, usedSlugs);
     const tags = buildTags(it.title, it.prompt);
-    return {
+    out.push({
       id: slug,
       title: it.title || '',
       detailUrl: it.detailUrl || '',
@@ -332,25 +341,39 @@ async function main() {
       tags: tags,
       license: LICENSE,
       originRepo: ORIGIN_REPO,
-    };
+    });
   });
 
   console.log('[4/4] 写出 JSON: ' + path.relative(ROOT, OUT_JSON_PATH) + ' (' + out.length + ' 条)');
   ensureDir(path.dirname(OUT_JSON_PATH));
   fs.writeFileSync(OUT_JSON_PATH, JSON.stringify(out, null, 2), 'utf8');
 
-  // 简要校验报告
+  // ── 完整统计 ──
   const withImg = out.filter((x) => x.imageUrl).length;
   const withAuthor = out.filter((x) => x.author).length;
   const withSource = out.filter((x) => x.sourceUrl).length;
   const withPrompt = out.filter((x) => x.prompt).length;
-  console.log('\n=== 校验 ===');
-  console.log('总条数: ' + out.length);
-  console.log('有图片: ' + withImg + ' / ' + out.length);
-  console.log('有作者: ' + withAuthor + ' / ' + out.length);
-  console.log('有来源: ' + withSource + ' / ' + out.length);
-  console.log('有正文: ' + withPrompt + ' / ' + out.length);
-  console.log('slug 唯一: ' + (new Set(out.map((x) => x.id)).size === out.length ? '是' : '否'));
+  const imgRate = out.length ? (withImg / out.length * 100).toFixed(1) : '0.0';
+  const authorRate = out.length ? (withAuthor / out.length * 100).toFixed(1) : '0.0';
+  const sourceRate = out.length ? (withSource / out.length * 100).toFixed(1) : '0.0';
+
+  console.log('\n========== 导入统计 ==========');
+  console.log('README 解析到的总条目数 : ' + totalParsed);
+  console.log('成功导入条数           : ' + out.length);
+  console.log('跳过条数               : ' + skipped.length);
+  console.log('图片字段覆盖率         : ' + withImg + '/' + out.length + ' (' + imgRate + '%)');
+  console.log('作者字段覆盖率         : ' + withAuthor + '/' + out.length + ' (' + authorRate + '%)');
+  console.log('来源字段覆盖率         : ' + withSource + '/' + out.length + ' (' + sourceRate + '%)');
+  console.log('有正文条数             : ' + withPrompt + '/' + out.length);
+  console.log('slug 唯一性            : ' + (new Set(out.map((x) => x.id)).size === out.length ? '是' : '否'));
+
+  if (skipped.length > 0) {
+    console.log('\n--- 跳过条目明细（前 20 条）---');
+    skipped.slice(0, 20).forEach((s) => {
+      console.log('  #' + (s.index + 1) + ' [' + s.reason + '] ' + (s.title || '(无标题)'));
+    });
+    if (skipped.length > 20) console.log('  ... 还有 ' + (skipped.length - 20) + ' 条');
+  }
 
   // 前 3 条预览
   console.log('\n=== 前 3 条预览 ===');
