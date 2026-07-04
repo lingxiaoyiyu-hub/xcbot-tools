@@ -170,6 +170,40 @@
           </div>
         </a>
 
+        <!-- AI 绘图提示词库 -->
+        <a href="prompts/" class="tool-card" data-cat="image">
+          <div class="tool-icon">
+            <svg viewBox="0 0 64 64" width="56" height="56" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="g-pm" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+                  <stop offset="0" stop-color="#f472b6"/><stop offset="1" stop-color="#9d174d"/>
+                </linearGradient>
+              </defs>
+              <rect width="64" height="64" rx="16" fill="url(#g-pm)"/>
+              <rect x="9" y="11" width="46" height="42" rx="6" fill="rgba(255,255,255,0.95)"/>
+              <!-- 画布上的山 -->
+              <path d="M9 53 L24 33 L33 43 L43 28 L55 53 Z" fill="#f9a8d4" opacity="0.9"/>
+              <!-- 太阳 -->
+              <circle cx="44" cy="22" r="5" fill="#fbbf24"/>
+              <!-- 画笔 -->
+              <g transform="rotate(35 50 44)">
+                <rect x="48" y="28" width="4" height="20" rx="1.5" fill="#9d174d"/>
+                <path d="M47 48 L53 48 L51 54 L49 54 Z" fill="#fce7f3"/>
+                <rect x="47.5" y="46" width="5" height="3" fill="#6b2138"/>
+              </g>
+              <!-- 调色点 -->
+              <circle cx="16" cy="18" r="2.5" fill="#3b82f6"/>
+              <circle cx="24" cy="18" r="2.5" fill="#10b981"/>
+              <circle cx="32" cy="18" r="2.5" fill="#f59e0b"/>
+            </svg>
+          </div>
+          <div class="tool-info">
+            <div class="tool-name">AI 绘图提示词库</div>
+            <div class="tool-desc">精选 Nano Banana / Midjourney / Stable Diffusion 绘图提示词，支持搜索、预览、一键复制与查看来源。</div>
+            <span class="tool-tag">AI 提示词</span>
+          </div>
+        </a>
+
         <!-- 图片水印助手 -->
         <a href="watermark/" class="tool-card" data-cat="image">
           <div class="tool-icon">

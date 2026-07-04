@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI 绘图提示词库 - 小乘工具箱</title>
+  <meta name="description" content="精选 Nano Banana、Midjourney、Stable Diffusion 等 AI 绘图提示词，支持图片预览、一键复制、来源查看和中文搜索。">
+  <link rel="stylesheet" href="/shared-white.css">
+  <link rel="stylesheet" href="prompts.css">
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <a href="/" class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 40 40" width="28" height="28" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <defs>
+            <linearGradient id="logo-bg" x1="4" y1="4" x2="36" y2="36" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#60a5fa"/>
+              <stop offset="0.52" stop-color="#34d399"/>
+              <stop offset="1" stop-color="#f59e0b"/>
+            </linearGradient>
+            <linearGradient id="logo-face" x1="12" y1="10" x2="28" y2="30" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#ffffff"/>
+              <stop offset="1" stop-color="#f8fafc"/>
+            </linearGradient>
+          </defs>
+          <rect x="3" y="3" width="34" height="34" rx="10" fill="url(#logo-bg)"/>
+          <rect x="10" y="13" width="20" height="16" rx="5" fill="url(#logo-face)" opacity="0.96"/>
+          <path d="M16 13V9.5A4 4 0 0 1 20 5.5a4 4 0 0 1 4 4V13" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round"/>
+          <circle cx="16.5" cy="21" r="2" fill="#2563eb"/>
+          <circle cx="23.5" cy="21" r="2" fill="#059669"/>
+          <path d="M16 25.5c2.2 1.7 5.8 1.7 8 0" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round"/>
+          <path d="M31 10.5l1.1 2.2 2.4.35-1.75 1.7.42 2.4L31 16l-2.15 1.15.42-2.4-1.75-1.7 2.4-.35z" fill="#fef3c7"/>
+        </svg>
+      </div>
+      小乘工具箱
+    </a>
+    <div class="search-wrap">
+      <svg class="search-icon" viewBox="0 0 24 24" width="15" height="15" stroke="#fff" stroke-width="2.5" fill="none">
+        <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
+      <input type="text" id="searchInput" placeholder="搜索标题 / 作者 / 提示词 / 标签...">
+    </div>
+    <a href="https://pay.ldxp.cn/shop/xcplus" target="_blank" class="shop-btn">
+      <i class="btn-icon">✨</i> 我的小铺
+    </a>
+  </div>
+</header>
+
+<div class="main">
+  <div class="main-inner">
+
+    <div class="left-col">
+
+      <!-- 顶部标题 + 小铺入口 -->
+      <div class="page-head">
+        <div class="page-head-text">
+          <h1 class="page-title">AI 绘图提示词库</h1>
+          <p class="page-sub">精选公开社区 AI 绘图提示词，支持搜索、预览、一键复制和查看原始来源。</p>
+        </div>
+        <a href="https://pay.ldxp.cn/shop/xcplus" target="_blank" class="shop-mini">
+          ✨ AI 工具会员低价入口 →
+        </a>
+      </div>
+
+      <!-- 分类筛选 -->
+      <div class="filters" id="filters">
+        <button class="filter-btn active" data-cat="全部">全部</button>
+        <button class="filter-btn" data-cat="摄影">摄影</button>
+        <button class="filter-btn" data-cat="插画">插画</button>
+        <button class="filter-btn" data-cat="3D">3D</button>
+        <button class="filter-btn" data-cat="海报">海报</button>
+        <button class="filter-btn" data-cat="UI">UI</button>
+        <button class="filter-btn" data-cat="产品图">产品图</button>
+        <button class="filter-btn" data-cat="表情包">表情包</button>
+      </div>
+
+      <!-- 结果计数 -->
+      <div class="result-count" id="resultCount">加载中...</div>
+
+      <!-- 提示词卡片网格 -->
+      <div class="prompts-grid" id="promptsGrid">
+        <!-- 由 prompts.js 渲染 -->
+      </div>
+
+      <!-- 空状态 -->
+      <div class="empty-state" id="emptyState" style="display:none;">
+        没有匹配的提示词，换个关键词试试。
+      </div>
+
+      <!-- 合规说明 -->
+      <div class="compliance">
+        <p>本页面数据整理自开源项目 <a href="https://github.com/Jermic/awesome-aiart-pics-prompts" target="_blank">Jermic/awesome-aiart-pics-prompts</a>。原项目采用 <strong>CC BY 4.0</strong> 协议。本站保留原作者、来源链接和原始页面链接，仅用于学习、检索与导航。</p>
+      </div>
+
+      <!-- 底部相关工具 -->
+      <div class="related">
+        <div class="related-title">相关工具</div>
+        <div class="related-grid">
+          <a href="/compressor/" class="related-card">图片压缩</a>
+          <a href="/watermark/" class="related-card">图片水印助手</a>
+          <a href="/qrcode/" class="related-card">二维码美化助手</a>
+          <a href="/api-nav/" class="related-card">公益站导航</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>© 2026 小乘工具箱. All rights reserved. Powered by GitHub Pages.</p>
+</footer>
+
+<!-- 提示词详情弹层（点击卡片"查看详情"展开完整 prompt） -->
+<div class="modal-overlay" id="modalOverlay" style="display:none;">
+  <div class="modal">
+    <button class="modal-close" id="modalClose" aria-label="关闭">×</button>
+    <div class="modal-img-wrap">
+      <img id="modalImg" src="" alt="" loading="lazy">
+    </div>
+    <h3 class="modal-title" id="modalTitle"></h3>
+    <div class="modal-meta">
+      <span class="modal-meta-item">作者：<a id="modalAuthor" href="#" target="_blank"></a></span>
+      <span class="modal-meta-item">来源：<a id="modalSource" href="#" target="_blank"></a></span>
+      <span class="modal-meta-item">详情：<a id="modalDetail" href="#" target="_blank">aiart.pics 原页面</a></span>
+    </div>
+    <div class="modal-tags" id="modalTags"></div>
+    <pre class="modal-prompt" id="modalPrompt"></pre>
+    <button class="copy-btn copy-btn-full" id="modalCopy">复制提示词</button>
+  </div>
+</div>
+
+<script src="prompts.js"></script>
+</body>
+</html>
