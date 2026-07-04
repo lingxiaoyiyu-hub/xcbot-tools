@@ -1,8 +1,8 @@
-# 小乘工具箱维护手册
+# XCbot 工具箱维护手册
 
 ## 项目概况
 
-小乘工具箱是一个纯静态 GitHub Pages 工具箱站点，线上域名为：
+XCbot 工具箱是一个纯静态 GitHub Pages 工具箱站点，线上域名为：
 
 - http://xcbot.cyou/
 - https://xcbot.cyou/（证书签发完成后使用）

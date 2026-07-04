@@ -1,4 +1,4 @@
-# 小乘工具箱 (xcbot.cyou)
+# XCbot 工具箱 (xcbot.cyou)
 
 一个纯静态、零依赖、无需服务器的在线工具聚合站。所有工具均在浏览器本地运行，**数据不出本地**，即开即用。基于 GitHub Pages 部署，push 到 main 分支即自动上线。
 
@@ -96,4 +96,4 @@
 
 ---
 
-&copy; 2026 小乘工具箱 · Powered by GitHub Pages
+&copy; 2026 XCbot 工具箱 · Powered by GitHub Pages
