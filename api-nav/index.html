@@ -18,12 +18,6 @@ header{height:56px;border-bottom:1px solid var(--cb);display:flex;align-items:ce
 .feedback-btn{background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.3);color:var(--primary);padding:6px 14px;border-radius:99px;font-size:.82rem;cursor:pointer;transition:all .2s;font-weight:600}
 .feedback-btn:hover{background:var(--primary);color:#fff;border-color:var(--primary)}
  
-/* Announcement */
-#announceBanner{display:none;width:100%;max-width:1180px;background:linear-gradient(90deg,rgba(245,158,11,.12),rgba(245,158,11,.06));border:1px solid rgba(245,158,11,.25);border-top:none;border-radius:0 0 9px 9px;padding:10px 24px;font-size:.88rem;color:var(--warn);align-items:center;gap:10px;position:fixed!important;top:56px!important;left:0!important;right:0!important;margin:0 auto;z-index:1000!important}
-#announceBanner span{flex:1}
-#announceBanner button{background:none;border:none;color:var(--warn);cursor:pointer;font-size:1.1rem;opacity:.7;padding:0 4px}
-#announceBanner button:hover{opacity:1}
- 
 /* Main */
 .container{max-width:1000px;width:100%;margin:0 auto;padding:32px 24px;flex:1;display:flex;flex-direction:column;gap:24px}
 .page-head{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:4px}
@@ -36,10 +30,13 @@ header{height:56px;border-bottom:1px solid var(--cb);display:flex;align-items:ce
 .tag-btn{background:rgba(255,255,255,.03);border:1px solid var(--cb);color:var(--muted);padding:6px 14px;border-radius:99px;font-size:.8rem;cursor:pointer;transition:all .2s}
 .tag-btn:hover{color:var(--text);background:rgba(255,255,255,.06)}
 .tag-btn.active{background:var(--primary);border-color:var(--primary);color:#fff}
-.search-box{position:relative;max-width:300px;width:100%}
+.search-actions{display:flex;align-items:center;gap:8px;max-width:430px;width:100%}
+.search-box{position:relative;flex:1;min-width:220px}
 .search-input{width:100%;background:var(--card);border:1px solid var(--cb);color:var(--text);border-radius:99px;padding:8px 16px 8px 36px;font-size:.88rem;outline:none;transition:border-color .2s}
 .search-input:focus{border-color:var(--primary)}
 .search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none}
+.announce-btn{display:none;align-items:center;gap:5px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.32);color:var(--warn);border-radius:99px;padding:8px 13px;font-size:.82rem;font-weight:700;cursor:pointer;white-space:nowrap;transition:all .2s}
+.announce-btn:hover{background:rgba(245,158,11,.18);border-color:rgba(245,158,11,.48)}
  
 /* Grid */
 .sites-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px}
@@ -66,6 +63,8 @@ header{height:56px;border-bottom:1px solid var(--cb);display:flex;align-items:ce
 .modal-overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);align-items:center;justify-content:center}
 .modal-overlay.show{display:flex}
 .modal{background:var(--card);border:1px solid var(--cb);border-radius:20px;padding:32px;width:480px;max-width:95vw;display:flex;flex-direction:column;gap:20px;box-shadow:0 24px 64px rgba(0,0,0,.5);position:relative}
+.announce-modal{border-color:rgba(245,158,11,.28);background:linear-gradient(180deg,rgba(245,158,11,.08),rgba(19,27,46,1) 38%)}
+.announce-content{font-size:.92rem;color:#e2e8f0;line-height:1.8;white-space:pre-wrap;background:rgba(255,255,255,.03);border:1px solid rgba(245,158,11,.18);border-radius:12px;padding:14px 16px}
 .modal-title{font-size:1.1rem;font-weight:800;color:var(--text)}
 .modal-sub{font-size:.84rem;color:var(--muted);line-height:1.6;margin-top:-12px}
 .modal-close{position:absolute;top:16px;right:16px;background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;padding:4px}
@@ -136,15 +135,6 @@ footer{padding:24px;text-align:center;border-top:1px solid var(--cb);font-size:.
   </div>
 </header>
  
-<!-- Announcement Banner -->
-<div id="announceBanner" style="display:none">
-  <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none" style="flex-shrink:0">
-    <circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line>
-  </svg>
-  <span id="announceText"></span>
-  <button onclick="document.getElementById('announceBanner').style.display='none';document.querySelector('.container').style.marginTop=''" title="关闭公告">&times;</button>
-</div>
- 
 <div class="container">
   <div class="page-head">
     <div class="page-head-text">
@@ -160,11 +150,14 @@ footer{padding:24px;text-align:center;border-top:1px solid var(--cb);font-size:.
       <button class="tag-btn" data-tag="生图">生图</button>
       <button class="tag-btn" data-tag="稳定">稳定</button>
     </div>
-    <div class="search-box">
-      <svg class="search-icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none">
-        <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-      </svg>
-      <input type="text" id="searchInput" class="search-input" placeholder="搜索站点或类型...">
+    <div class="search-actions">
+      <div class="search-box">
+        <svg class="search-icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none">
+          <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" id="searchInput" class="search-input" placeholder="搜索站点或类型...">
+      </div>
+      <button id="announceBtn" class="announce-btn" onclick="openAnnouncement()" title="查看公告">公告</button>
     </div>
   </div>
  
@@ -175,6 +168,15 @@ footer{padding:24px;text-align:center;border-top:1px solid var(--cb);font-size:.
   <p>&copy; 2026 公益站导航. 所有收录信息均来自公开共享，本站不对任何收录中转站及其活动负责。</p>
 </footer>
  
+<!-- Announcement Modal -->
+<div class="modal-overlay" id="announcementModal">
+  <div class="modal announce-modal">
+    <button class="modal-close" onclick="closeAnnouncement()">&times;</button>
+    <div class="modal-title">站点公告</div>
+    <div class="announce-content" id="announcementText"></div>
+  </div>
+</div>
+
 <!-- Feedback Modal -->
 <div class="modal-overlay" id="feedbackModal">
   <div class="modal">
@@ -230,12 +232,11 @@ async function loadSites() {
       allSites = data;
     } else {
       allSites = data.sites || [];
-      // Show announcement if enabled
+      // Show announcement button if enabled
       const ann = data.announcement;
       if (ann && ann.enabled && ann.text) {
-        document.getElementById('announceText').textContent = ann.text;
-        document.getElementById('announceBanner').style.display = 'flex';
-        document.querySelector('.container').style.marginTop = '46px';
+        document.getElementById('announcementText').textContent = ann.text;
+        document.getElementById('announceBtn').style.display = 'inline-flex';
       }
     }
     renderSites();
@@ -300,6 +301,15 @@ async function testPing(id, url) {
   }
 }
  
+// ─── Announcement Modal ───────────────────────────
+function openAnnouncement() {
+  document.getElementById('announcementModal').classList.add('show');
+}
+
+function closeAnnouncement() {
+  document.getElementById('announcementModal').classList.remove('show');
+}
+
 // ─── Feedback Modal ───────────────────────────────
 function openFeedback() {
   document.getElementById('feedbackModal').classList.add('show');
@@ -338,6 +348,10 @@ function submitFeedback() {
 }
  
 // Close modal on backdrop click
+document.getElementById('announcementModal').addEventListener('click', function(e) {
+  if (e.target === this) closeAnnouncement();
+});
+
 document.getElementById('feedbackModal').addEventListener('click', function(e) {
   if (e.target === this) closeFeedback();
 });
