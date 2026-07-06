@@ -615,6 +615,10 @@
           <div class="rec-title"><span>免费游戏资源怎么使用？</span></div>
           <div class="rec-desc">了解百度网盘、夸克网盘资源入口的搜索和安全注意事项。</div>
         </a>
+        <a href="tutorials/temp-mail-guide.html" class="rec-item">
+          <div class="rec-title"><span>临时邮箱怎么用？</span></div>
+          <div class="rec-desc">注册测试、收验证码和保护真实邮箱隐私的使用场景说明。</div>
+        </a>
         <a href="tutorials/" class="rec-item">
           <div class="rec-title"><span>查看全部教程</span></div>
           <div class="rec-desc">进入教程板块，查看更多使用指南。</div>
@@ -636,22 +640,34 @@
   var currentFilter = 'all';
   var tutorialsRec = document.getElementById('tutorialsRec');
 
+  var fallbackTutorialsRec = [
+    { id: 'free-ai-api-sites', title: '免费公益 AI/API 站点怎么找？', summary: '用 XCbot 导航快速筛选免费大模型、AI 绘图和 API 中转资源。', pinned: true, url: 'tutorials/free-ai-api-sites.html' },
+    { id: 'ai-prompt-guide', title: 'AI 绘图提示词怎么写？', summary: '从主体、场景、风格、光线和构图拆解提示词写法。', pinned: true, url: 'tutorials/ai-prompt-guide.html' },
+    { id: 'free-game-resources', title: '免费游戏资源怎么使用？', summary: '了解百度网盘、夸克网盘资源入口的搜索和安全注意事项。', pinned: true, url: 'tutorials/free-game-resources.html' },
+    { id: 'temp-mail-guide', title: '临时邮箱怎么用？', summary: '注册测试、收验证码和保护真实邮箱隐私的使用场景说明。', pinned: true, url: 'tutorials/temp-mail-guide.html' }
+  ];
+
   function loadTutorialsRec(){
     if (!tutorialsRec) return;
     fetch('https://xcbot-nav-api.lingxiaoyiyu.workers.dev/tutorials?t=' + Date.now(), { cache: 'no-store' })
       .then(function(res){ return res.ok ? res.json() : []; })
       .then(function(list){
-        if (!Array.isArray(list) || !list.length) return;
-        var top = list.slice().sort(function(a,b){ return Number(!!b.pinned) - Number(!!a.pinned); }).slice(0, 4);
-        tutorialsRec.innerHTML = top.map(function(t){
-          var href = t.url || ('tutorials/#' + encodeURIComponent(t.id));
-          return '<a href="' + esc(href) + '" class="rec-item">' +
-            '<div class="rec-title"><span>' + esc(t.title) + '</span></div>' +
-            '<div class="rec-desc">' + esc(t.summary || t.date || '点击查看教程内容') + '</div>' +
-          '</a>';
-        }).join('') + '<a href="tutorials/" class="rec-item"><div class="rec-title"><span>查看全部教程</span></div></a>';
+        var remote = Array.isArray(list) ? list : [];
+        var merged = remote.concat(fallbackTutorialsRec);
+        var top = merged.sort(function(a,b){ return Number(!!b.pinned) - Number(!!a.pinned); }).slice(0, 4);
+        renderTutorialsRec(top);
       })
-      .catch(function(){});
+      .catch(function(){ renderTutorialsRec(fallbackTutorialsRec.slice(0, 4)); });
+  }
+
+  function renderTutorialsRec(top){
+    tutorialsRec.innerHTML = top.map(function(t){
+      var href = t.url || ('tutorials/#' + encodeURIComponent(t.id));
+      return '<a href="' + esc(href) + '" class="rec-item">' +
+        '<div class="rec-title"><span>' + esc(t.title) + '</span></div>' +
+        '<div class="rec-desc">' + esc(t.summary || t.date || '点击查看教程内容') + '</div>' +
+      '</a>';
+    }).join('') + '<a href="tutorials/" class="rec-item"><div class="rec-title"><span>查看全部教程</span></div></a>';
   }
 
   function esc(s){
