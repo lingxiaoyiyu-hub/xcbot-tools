@@ -69,6 +69,17 @@
       "tags": [
         "签到"
       ]
+    },
+    {
+      "id": "1783328607409",
+      "date": "2026-07-06",
+      "name": "商汤日日新",
+      "domain": "https://www.sensenova.cn/token-plan",
+      "url": "https://www.sensenova.cn/token-plan",
+      "description": "商汤日日新，国产模型，目前免费测试阶段，网站模型免费调用，速度也不错，有glm5.2，deepseek-v4可用。",
+      "tags": [
+        "稳定"
+      ]
     }
   ]
 }
