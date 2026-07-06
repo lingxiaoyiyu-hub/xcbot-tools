@@ -358,6 +358,7 @@ function loadConfig() {
 
 function saveConfig() {
   localStorage.setItem('nav_git_token', document.getElementById('githubToken').value.trim());
+  localStorage.setItem('nav_admin_key', document.getElementById('workerAdminKey').value.trim());
   localStorage.setItem('nav_git_user', document.getElementById('githubUser').value.trim());
   localStorage.setItem('nav_git_repo', document.getElementById('githubRepo').value.trim());
   showLog('statusBoxSettings', '配置已保存到本地浏览器。', 'success');
@@ -366,7 +367,593 @@ function saveConfig() {
 // ─── Data Load ────────────────────────────────────
 async function loadData() {
   try {
-    const res = await fetch('sites.json?t=' + Date.now());
+   const res = await fetch('sites.json?t=' + Date.now());
+    const res = await (async () => {
+      try {
+        const r = await fetch('https://xcbot-nav-api.lingxiaoyiyu.workers.dev/sites?t=' + Date.now(), { cache: 'no-store' });
+        if (r.ok) return r;
+        throw new Error('Worker unavailable');
+      } catch {
+        return await fetch('sites.json?t=' + Date.now());
+      }
+    })();
+    db = await res.json();
+    // Backwards compat: if old format (plain array)
+    if (Array.isArray(db)) {
+      db = { announcement: { enabled: false, text: '' }, sites: db };
+    }
+    renderList();
+    renderAnnounce();
+  } catch (e) {
+    showLog('statusBox', '无法读取 sites.json。', 'error');
+  }
+}
+
+// ─── Sites ────────────────────────────────────────
+function renderList() {
+  document.getElementById('siteList').innerHTML = db.sites.map(s => `
+    <div class="list-item ${currentId === s.id ? 'active' : ''}" onclick="selectSite('${s.id}')">
+      <div class="list-item-name">${esc(s.name)}</div>
+      <div class="list-item-domain">${esc(s.domain)}</div>
+    </div>
+  `).join('') || '<div style="color:var(--muted);font-size:.84rem;padding:8px">暂无站点，点击 + 新增</div>';
+}
+
+function selectSite(id) {
+  currentId = id;
+  renderList();
+  const s = db.sites.find(x => x.id === id);
+  if (!s) return;
+  document.getElementById('formTitle').textContent = '编辑站点 — ' + s.name;
+  document.getElementById('siteName').value = s.name;
+  document.getElementById('siteDomain').value = s.domain;
+  document.getElementById('siteUrl').value = s.url;
+  document.getElementById('siteDesc').value = s.description || '';
+  document.querySelectorAll('input[name="siteTag"]').forEach(cb => cb.checked = (s.tags || []).includes(cb.value));
+  document.getElementById('deleteBtn').style.display = 'inline-block';
+}
+
+function initNewForm() {
+  currentId = null;
+  renderList();
+  document.getElementById('formTitle').textContent = '新增站点';
+  ['siteName','siteDomain','siteUrl','siteDesc'].forEach(id => document.getElementById(id).value = '');
+  document.querySelectorAll('input[name="siteTag"]').forEach(cb => cb.checked = false);
+  document.getElementById('deleteBtn').style.display = 'none';
+}
+
+function buildSiteFromForm() {
+  const name = document.getElementById('siteName').value.trim();
+  const domain = document.getElementById('siteDomain').value.trim();
+  const url = document.getElementById('siteUrl').value.trim();
+  const description = document.getElementById('siteDesc').value.trim();
+  const tags = [...document.querySelectorAll('input[name="siteTag"]:checked')].map(cb => cb.value);
+  if (!name || !domain || !url) { alert('请完整填写名称、域名和跳转链接！'); return null; }
+  return { name, domain, url, description, tags };
+}
+
+async function saveAndPublish() {
+  const data = buildSiteFromForm();
+  if (!data) return;
+  if (currentId) {
+    const idx = db.sites.findIndex(s => s.id === currentId);
+    if (idx !== -1) db.sites[idx] = { ...db.sites[idx], ...data };
+  } else {
+    db.sites.push({ id: String(Date.now()), date: new Date().toISOString().split('T')[0], ...data });
+  }
+  renderList();
+  await publish('statusBox');
+}
+
+async function deleteAndPublish() {
+  if (!currentId) return;
+  if (!confirm('确定要删除这个站点吗？删除后将立即同步到线上。')) return;
+  db.sites = db.sites.filter(s => s.id !== currentId);
+  renderList();
+  document.getElementById('statusBox').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  const ok = await publish('statusBox');
+  if (ok) initNewForm();
+}
+
+function downloadBackup() {
+  const a = document.createElement('a');
+  a.href = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(db, null, 2));
+  a.download = 'sites_backup.json';
+  a.click();
+}
+
+// ─── Announcement ─────────────────────────────────
+function renderAnnounce() {
+  announceEnabled = db.announcement && db.announcement.enabled;
+  const btn = document.getElementById('announceToggle');
+  btn.classList.toggle('on', announceEnabled);
+  document.getElementById('announceToggleLabel').textContent = announceEnabled ? '已开启（显示在前台）' : '已关闭';
+  document.getElementById('announceText').value = (db.announcement && db.announcement.text) || '';
+}
+
+function toggleAnnounce() {
+  announceEnabled = !announceEnabled;
+  db.announcement.enabled = announceEnabled;
+  const btn = document.getElementById('announceToggle');
+  btn.classList.toggle('on', announceEnabled);
+  document.getElementById('announceToggleLabel').textContent = announceEnabled ? '已开启（显示在前台）' : '已关闭';
+}
+
+async function saveAnnounceAndPublish() {
+  const text = document.getElementById('announceText').value.trim();
+  db.announcement = {
+    enabled: announceEnabled,
+    text: text
+  };
+  await publish('statusBoxAnnounce');
+}
+
+// ─── Feedback ─────────────────────────────────────
+function loadFeedback() {
+  const raw = localStorage.getItem('nav_feedbacks');
+  const list = raw ? JSON.parse(raw) : [];
+  const badge = document.getElementById('fbBadge');
+  const unread = list.filter(f => !f.read).length;
+  badge.style.display = unread > 0 ? 'inline' : 'none';
+  badge.textContent = unread;
+
+  const el = document.getElementById('feedbackList');
+  if (!list.length) {
+    el.innerHTML = '<div style="color:var(--muted);font-size:.84rem;padding:8px">暂无投稿反馈。</div>';
+    return;
+  }
+  el.innerHTML = list.slice().reverse().map(f => `
+    <div class="fb-item">
+      <div class="fb-item-header">
+        <span class="badge ${f.read ? '' : 'new'}">${f.read ? '已读' : '新'}</span>
+        <span>${esc(f.name || '匿名')}</span>
+        <span style="margin-left:auto;font-size:.74rem;color:var(--muted)">${f.time || ''}</span>
+      </div>
+      ${f.url ? '<div class="fb-item-meta">推荐链接：<a href="' + esc(f.url) + '" target="_blank" style="color:var(--primary)">' + esc(f.url) + '</a></div>' : ''}
+      <div class="fb-item-body">${esc(f.message || '')}</div>
+      <div class="btn-row" style="margin-top:4px">
+        <button class="btn btn-ghost btn-sm" onclick="markRead('${f.id}')">标记已读</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteFeedback('${f.id}')">删除</button>
+      </div>
+    </div>
+  `).join('');
+
+  // Mark all as read when viewed
+  list.forEach(f => f.read = true);
+  localStorage.setItem('nav_feedbacks', JSON.stringify(list));
+  badge.style.display = 'none';
+}
+
+function markRead(id) {
+  const list = JSON.parse(localStorage.getItem('nav_feedbacks') || '[]');
+  const f = list.find(x => x.id === id);
+  if (f) f.read = true;
+  localStorage.setItem('nav_feedbacks', JSON.stringify(list));
+  loadFeedback();
+}
+
+function deleteFeedback(id) {
+  if (!confirm('确定删除这条反馈吗？')) return;
+  const list = JSON.parse(localStorage.getItem('nav_feedbacks') || '[]').filter(x => x.id !== id);
+  localStorage.setItem('nav_feedbacks', JSON.stringify(list));
+  loadFeedback();
+}
+
+function clearAllFeedback() {
+  if (!confirm('确定清空所有投稿反馈记录吗？')) return;
+  localStorage.removeItem('nav_feedbacks');
+  loadFeedback();
+}
+
+// ─── Publish to GitHub ────────────────────────────
+async function publish(statusEl) {
+  const adminKey = localStorage.getItem('nav_admin_key') || '';
+
+  if (!adminKey) {
+    showLog(statusEl, 'Please save your Worker admin key in Settings first.', 'error');
+    return false;
+  }
+
+  const apiUrl = 'https://xcbot-nav-api.lingxiaoyiyu.workers.dev/sites';
+  const headers = {
+    'Content-Type': 'application/json',
+    'X-Admin-Key': adminKey
+  };
+
+  try {
+    showLog(statusEl, 'Saving to Cloudflare KV...', 'info');
+    const putRes = await fetch(apiUrl, { method: 'PUT', headers, body: JSON.stringify(db) });
+
+    if (putRes.ok) {
+      const result = await putRes.json();
+      showLog(statusEl, 'Done! Data is live. Refresh the front page to see changes.', 'success');
+      return true;
+    } else {
+      const err = await putRes.json().catch(() => ({}));
+      showLog(statusEl, 'Save failed: ' + (err.error || putRes.status), 'error');
+      return false;
+    }
+  } catch (e) {
+    showLog(statusEl, 'Connection error: ' + e.message, 'error');
+    return false;
+  }
+}html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>公益导航后台管理</title>
+<style>
+:root{--bg:#090d16;--card:#131b2e;--border:#1e293b;--primary:#3b82f6;--phover:#2563eb;--text:#f8fafc;--muted:#64748b;--success:#10b981;--danger:#ef4444;--warn:#f59e0b}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+
+/* Login */
+#loginOverlay{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;align-items:center;justify-content:center}
+.login-box{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:40px 36px;width:340px;display:flex;flex-direction:column;gap:20px;box-shadow:0 24px 64px rgba(0,0,0,.5)}
+.login-logo{display:flex;align-items:center;gap:10px;font-size:1.1rem;font-weight:800;color:var(--primary)}
+.login-sub{font-size:.85rem;color:var(--muted);line-height:1.6}
+.login-input{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:12px 16px;font-size:1rem;outline:none;transition:border-color .2s;letter-spacing:3px}
+.login-input:focus{border-color:var(--primary)}
+.login-btn{width:100%;background:var(--primary);color:#fff;border:none;border-radius:10px;padding:13px;font-size:.95rem;font-weight:700;cursor:pointer;transition:background .2s}
+.login-btn:hover{background:var(--phover)}
+.login-err{font-size:.8rem;color:var(--danger);text-align:center;min-height:18px}
+
+/* Admin */
+#adminContent{display:none;flex-direction:column;flex:1}
+header{height:56px;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;background:rgba(9,13,22,.9);backdrop-filter:blur(12px);position:sticky;top:0;z-index:10}
+.logo{font-size:1rem;font-weight:700;color:var(--primary);display:flex;align-items:center;gap:8px;text-decoration:none}
+.hdr-right{margin-left:auto;display:flex;align-items:center;gap:16px}
+.nav-lnk{color:var(--muted);text-decoration:none;font-size:.84rem;transition:color .2s}
+.nav-lnk:hover{color:var(--text)}
+
+/* Tabs */
+.tabs{display:flex;gap:0;border-bottom:2px solid var(--border);padding:0 24px;margin-top:4px}
+.tab{padding:12px 20px;font-size:.88rem;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s}
+.tab.active{color:var(--primary);border-bottom-color:var(--primary)}
+.tab:hover:not(.active){color:var(--text)}
+.tab-panel{display:none;padding:24px;flex:1}
+.tab-panel.active{display:block}
+
+/* Grid layout */
+.grid2{display:grid;grid-template-columns:1fr 2fr;gap:20px;max-width:1200px;margin:0 auto;width:100%}
+.grid1{display:grid;grid-template-columns:1fr;gap:20px;max-width:900px;margin:0 auto;width:100%}
+@media(max-width:760px){.grid2{grid-template-columns:1fr}}
+
+/* Panel */
+.panel{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:16px}
+.panel-title{font-size:.82rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;padding-bottom:12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.panel.dashed{border-style:dashed;border-color:var(--success);background:rgba(16,185,129,.02)}
+.panel.dashed-warn{border-style:dashed;border-color:var(--warn);background:rgba(245,158,11,.02)}
+
+/* Site list */
+.site-list{display:flex;flex-direction:column;gap:8px}
+.list-item{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:10px;padding:12px 14px;cursor:pointer;transition:border-color .2s,background .2s}
+.list-item:hover{border-color:var(--primary);background:rgba(59,130,246,.05)}
+.list-item.active{border-color:var(--primary);background:rgba(59,130,246,.1)}
+.list-item-name{font-size:.9rem;font-weight:600}
+.list-item-domain{font-size:.76rem;color:var(--muted);margin-top:2px}
+
+/* Form */
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-label{font-size:.76rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.form-input,.form-textarea{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px 12px;font-size:.88rem;font-family:inherit;outline:none;transition:border-color .2s;width:100%}
+.form-input:focus,.form-textarea:focus{border-color:var(--primary)}
+.form-textarea{resize:vertical}
+.chk-row{display:flex;gap:16px;flex-wrap:wrap;margin-top:4px}
+.chk-lbl{display:flex;align-items:center;gap:6px;font-size:.88rem;cursor:pointer}
+.chk-lbl input{cursor:pointer;accent-color:var(--primary)}
+.toggle-row{display:flex;align-items:center;gap:12px}
+.toggle{width:44px;height:24px;border-radius:12px;background:var(--border);border:none;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0}
+.toggle.on{background:var(--success)}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .2s}
+.toggle.on::after{left:23px}
+
+/* Buttons */
+.btn-row{display:flex;gap:10px;flex-wrap:wrap}
+.btn{padding:10px 18px;border-radius:8px;font-size:.88rem;font-weight:600;border:none;cursor:pointer;transition:all .2s;white-space:nowrap}
+.btn-sm{padding:4px 10px;font-size:.76rem}
+.btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{background:var(--phover)}
+.btn-ghost{background:rgba(255,255,255,.06);color:var(--text);border:1px solid var(--border)}.btn-ghost:hover{background:rgba(255,255,255,.1)}
+.btn-success{background:var(--success);color:#fff}.btn-success:hover{background:#059669}
+.btn-danger{background:var(--danger);color:#fff}.btn-danger:hover{background:#dc2626}
+.btn-warn{background:var(--warn);color:#000}.btn-warn:hover{background:#d97706}
+
+/* Sync row */
+.sync-row{display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap}
+.sync-row .form-group{flex:1;min-width:180px}
+
+/* Status */
+.status-box{padding:12px;border-radius:8px;font-size:.82rem;line-height:1.6;background:rgba(255,255,255,.03);border:1px solid var(--border);display:none;white-space:pre-wrap}
+
+/* Feedback item */
+.fb-item{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:6px}
+.fb-item-header{display:flex;align-items:center;gap:8px;font-size:.84rem;font-weight:600}
+.fb-item-meta{font-size:.74rem;color:var(--muted)}
+.fb-item-body{font-size:.84rem;color:var(--text);line-height:1.5}
+.badge{padding:2px 8px;border-radius:99px;font-size:.72rem;font-weight:700;background:rgba(59,130,246,.15);color:var(--primary)}
+.badge.new{background:rgba(16,185,129,.15);color:var(--success)}
+
+hr.divider{border:none;border-top:1px solid var(--border);margin:4px 0}
+
+footer{text-align:center;padding:14px;font-size:.76rem;color:var(--muted);border-top:1px solid var(--border)}
+</style>
+<link rel="stylesheet" href="../shared-white.css">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+</head>
+<body>
+
+<!-- ===== LOGIN ===== -->
+<div id="loginOverlay">
+  <div class="login-box">
+    <div class="login-logo">
+      <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2.5" fill="none">
+        <rect x="3" y="11" width="18" height="11" rx="2"></rect>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+      </svg>
+      后台管理 · 验证身份
+    </div>
+    <div class="login-sub">请输入管理员密码才能进入后台管理面板。</div>
+    <input type="password" id="loginInput" class="login-input" placeholder="请输入密码"
+      onkeydown="if(event.key==='Enter')checkLogin()">
+    <button class="login-btn" onclick="checkLogin()">登 录</button>
+    <div class="login-err" id="loginErr"></div>
+  </div>
+</div>
+
+<!-- ===== ADMIN ===== -->
+<div id="adminContent">
+
+<header>
+  <a href="index.html" class="logo">
+    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none">
+      <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+      <polyline points="2 17 12 22 22 17"></polyline>
+      <polyline points="2 12 12 17 22 12"></polyline>
+    </svg>
+    公益站导航 · 后台管理
+  </a>
+  <div class="hdr-right">
+    <a href="index.html" class="nav-lnk">返回前台</a>
+    <a href="../" class="nav-lnk">返回工具箱</a>
+  </div>
+</header>
+
+<!-- Tabs -->
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('sites')">站点管理</div>
+  <div class="tab" onclick="switchTab('announce')">公告管理</div>
+  <div class="tab" onclick="switchTab('feedback')">投稿反馈 <span id="fbBadge" style="display:none;background:var(--danger);color:#fff;border-radius:99px;font-size:.7rem;padding:1px 6px;margin-left:4px"></span></div>
+  <div class="tab" onclick="switchTab('settings')">GitHub 配置</div>
+</div>
+
+<!-- ===== TAB: SITES ===== -->
+<div class="tab-panel active" id="tab-sites">
+  <div class="grid2">
+    <div class="panel">
+      <div class="panel-title">
+        <span>站点列表</span>
+        <button class="btn btn-ghost btn-sm" onclick="initNewForm()">+ 新增</button>
+      </div>
+      <div class="site-list" id="siteList"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title" id="formTitle">新增站点</div>
+
+      <div class="form-group">
+        <label class="form-label">站点名称</label>
+        <input type="text" id="siteName" class="form-input" placeholder="例如: bizdecipher">
+      </div>
+      <div class="form-group">
+        <label class="form-label">站点域名</label>
+        <input type="text" id="siteDomain" class="form-input" placeholder="例如: bizdecipher.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">跳转地址（推广链接）</label>
+        <input type="text" id="siteUrl" class="form-input" placeholder="带aff码的注册链接">
+      </div>
+      <div class="form-group">
+        <label class="form-label">专区标签</label>
+        <div class="chk-row">
+          <label class="chk-lbl"><input type="checkbox" name="siteTag" value="签到"> 签到</label>
+          <label class="chk-lbl"><input type="checkbox" name="siteTag" value="生图"> 生图</label>
+          <label class="chk-lbl"><input type="checkbox" name="siteTag" value="稳定"> 稳定</label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">备注说明</label>
+        <textarea id="siteDesc" class="form-textarea" rows="4" placeholder="注册赠送额度、签到福利等..."></textarea>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-success" onclick="saveAndPublish()">💾 保存并立即发布</button>
+        <button class="btn btn-danger" id="deleteBtn" style="display:none" onclick="deleteAndPublish()">🗑 删除并发布</button>
+        <button class="btn btn-ghost" onclick="initNewForm()">取消</button>
+      </div>
+
+      <hr class="divider">
+      <div class="btn-row">
+        <button class="btn btn-ghost" onclick="downloadBackup()">📥 下载 sites.json 备份</button>
+      </div>
+      <div class="status-box" id="statusBox"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TAB: ANNOUNCE ===== -->
+<div class="tab-panel" id="tab-announce">
+  <div class="grid1">
+    <div class="panel dashed-warn">
+      <div class="panel-title">公告管理</div>
+      <div style="font-size:.84rem;color:var(--muted);line-height:1.6">
+        公告将显示在导航页面顶部醒目位置。留空则不显示。
+      </div>
+      <div class="form-group">
+        <label class="form-label">公告状态</label>
+        <div class="toggle-row">
+          <button class="toggle" id="announceToggle" onclick="toggleAnnounce()"></button>
+          <span id="announceToggleLabel" style="font-size:.88rem;color:var(--muted)">已关闭</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">公告内容</label>
+        <textarea id="announceText" class="form-textarea" rows="4"
+          placeholder="在这里输入公告内容，支持 Emoji。例如：🎉 7月活动：注册即送50积分，有效期3天！"></textarea>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-success" onclick="saveAnnounceAndPublish()">💾 保存公告并发布</button>
+      </div>
+      <div class="status-box" id="statusBoxAnnounce"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TAB: FEEDBACK ===== -->
+<div class="tab-panel" id="tab-feedback">
+  <div class="grid1">
+    <div class="panel">
+      <div class="panel-title">
+        <span>投稿 &amp; 反馈列表</span>
+        <button class="btn btn-ghost btn-sm" onclick="clearAllFeedback()">清空已读</button>
+      </div>
+      <div style="font-size:.82rem;color:var(--muted)">用户通过前台"投稿反馈"提交的站点推荐和反馈信息将存储在此。（数据存于本地浏览器 localStorage，不上传）</div>
+      <div id="feedbackList" style="display:flex;flex-direction:column;gap:10px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TAB: SETTINGS ===== -->
+<div class="tab-panel" id="tab-settings">
+  <div class="grid1">
+    <div class="panel dashed">
+      <div class="panel-title">GitHub 自动同步配置（无服务器 CMS）</div>
+      <div class="sync-row">
+        <div class="form-group">
+          <label class="form-label">GitHub Token (PAT)</label>
+          <input type="password" id="githubToken" class="form-input" placeholder="GitHub Personal Access Token（需 repo 权限）">
+        </div>
+        <div class="form-group">
+          <label class="form-label">用户名</label>
+          <input type="text" id="githubUser" class="form-input">
+        </div>
+        <div class="form-group">
+          <label class="form-label">仓库名</label>
+          <input type="text" id="githubRepo" class="form-input">
+        </div>
+        <div class="form-group" style="flex:0;min-width:auto">
+          <button class="btn btn-primary" onclick="saveConfig()">保存配置</button>
+        </div>
+      </div>
+      <div style="font-size:.74rem;color:var(--muted)">
+        ⚠️ Token 仅保存在本地浏览器 LocalStorage，不会上传至任何第三方。
+        <br>如需生成 Token：GitHub → Settings → Developer Settings → Personal Access Tokens → 勾选 <b>repo</b> 权限。
+      </div>
+      <div class="status-box" id="statusBoxSettings"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">修改管理密码</div>
+      <div style="font-size:.82rem;color:var(--muted);line-height:1.6">
+        在浏览器控制台（F12 → Console）运行以下代码可获取新密码的 Hash，然后联系开发者更新到 admin.html 的 ADMIN_HASH 常量中。
+      </div>
+      <pre style="background:rgba(0,0,0,.3);border-radius:8px;padding:12px;font-size:.78rem;color:var(--text);overflow-x:auto;line-height:1.6">crypto.subtle.digest('SHA-256', new TextEncoder().encode('你的新密码'))
+  .then(b => console.log([...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')))</pre>
+    </div>
+  </div>
+</div>
+
+<footer>
+  &copy; 2026 公益站导航后台 &mdash; 数据通过 GitHub API 直接推送至仓库，无服务器依赖。
+</footer>
+
+</div><!-- /adminContent -->
+
+<script>
+// ─── State ────────────────────────────────────────
+let db = { announcement: { enabled: false, text: '' }, sites: [] };
+let currentId = null;
+let announceEnabled = false;
+
+// ─── Password Gate ────────────────────────────────
+// SHA-256 of "admin888" (verified via PowerShell)
+const ADMIN_HASH = 'aaffebecec560fec66e75f24062224ffa4e07696d2ae9a1fee3707c3f8fd9373';
+
+async function checkLogin() {
+  const pw = document.getElementById('loginInput').value;
+  if (!pw) return;
+  const errEl = document.getElementById('loginErr');
+  try {
+    if (!window.crypto || !window.crypto.subtle) {
+      throw new Error('当前环境不支持加密接口（crypto.subtle）。请通过 HTTPS 访问本页，例如 https://xcbot.cyou/api-nav/admin.html');
+    }
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
+    const hex = [...new Uint8Array(buf)].map(x => x.toString(16).padStart(2, '0')).join('');
+    if (hex === ADMIN_HASH) {
+      document.getElementById('loginOverlay').style.display = 'none';
+      document.getElementById('adminContent').style.display = 'flex';
+      loadConfig();
+      loadData();
+      loadFeedback();
+    } else {
+      errEl.textContent = '密码错误，请重试。';
+      document.getElementById('loginInput').value = '';
+      document.getElementById('loginInput').focus();
+      setTimeout(() => { if (errEl) errEl.textContent = ''; }, 3000);
+    }
+  } catch (e) {
+    console.error('checkLogin error:', e);
+    errEl.textContent = '登录失败：' + (e && e.message ? e.message : String(e));
+    document.getElementById('loginInput').value = '';
+    document.getElementById('loginInput').focus();
+  }
+}
+
+window.onload = () => document.getElementById('loginInput').focus();
+
+// ─── Tabs ─────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    const panels = ['sites', 'announce', 'feedback', 'settings'];
+    t.classList.toggle('active', panels[i] === name);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p => {
+    p.classList.toggle('active', p.id === 'tab-' + name);
+  });
+}
+
+// ─── Config ───────────────────────────────────────
+function loadConfig() {
+  document.getElementById('githubToken').value = localStorage.getItem('nav_git_token') || '';
+  document.getElementById('githubUser').value = localStorage.getItem('nav_git_user') || 'lingxiaoyiyu-hub';
+  document.getElementById('githubRepo').value = localStorage.getItem('nav_git_repo') || 'my-tools';
+  if (!localStorage.getItem('nav_git_user')) {
+    localStorage.setItem('nav_git_user', 'lingxiaoyiyu-hub');
+    localStorage.setItem('nav_git_repo', 'my-tools');
+  }
+}
+
+function saveConfig() {
+  localStorage.setItem('nav_git_token', document.getElementById('githubToken').value.trim());
+  localStorage.setItem('nav_git_user', document.getElementById('githubUser').value.trim());
+  localStorage.setItem('nav_git_repo', document.getElementById('githubRepo').value.trim());
+  showLog('statusBoxSettings', '配置已保存到本地浏览器。', 'success');
+}
+
+// ─── Data Load ────────────────────────────────────
+async function loadData() {
+  try {
+   const res = await fetch('sites.json?t=' + Date.now());
+    const res = await (async () => {
+      try {
+        const r = await fetch('https://xcbot-nav-api.lingxiaoyiyu.workers.dev/sites?t=' + Date.now(), { cache: 'no-store' });
+        if (r.ok) return r;
+        throw new Error('Worker unavailable');
+      } catch {
+        return await fetch('sites.json?t=' + Date.now());
+      }
+    })();
     db = await res.json();
     // Backwards compat: if old format (plain array)
     if (Array.isArray(db)) {
