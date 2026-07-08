@@ -93,6 +93,30 @@ body.tool-page .logo-mark svg{ width:28px; height:28px; display:block; }
    这里恢复 glyph 的白色描边，保证深底方块上的图形可见 */
 body.tool-page .logo-mark svg path{ stroke:#fff !important; }
 
+body.tool-page .home-link-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:30px;
+  padding:6px 10px;
+  border-radius:8px;
+  border:1px solid var(--border);
+  background:var(--bg-subtle);
+  color:var(--muted) !important;
+  font-size:13px;
+  font-weight:600;
+  line-height:1;
+  text-decoration:none;
+  white-space:nowrap;
+  flex-shrink:0;
+  transition:border-color .2s var(--ease), background .2s var(--ease), color .2s var(--ease);
+}
+body.tool-page .home-link-btn:hover{
+  background:var(--bg);
+  border-color:var(--border-strong);
+  color:var(--fg) !important;
+}
+
 /* ── 右侧集群：搜索框 + 小铺按钮 ─────────────────────────────────────── */
 body.tool-page .header-right{
   display:flex;
