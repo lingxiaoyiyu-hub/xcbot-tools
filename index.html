@@ -613,10 +613,12 @@
         <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="1.85" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z"></path></svg>
         <span>精选教程</span>
       </div>
-      <a href="tutorials/" class="rec-item">
-        <div class="rec-title"><span>查看全部教程</span></div>
-        <div class="rec-desc">进入教程板块，查看更多使用指南。</div>
-      </a>
+      <div id="tutorialsRec">
+        <a href="tutorials/" class="rec-item">
+          <div class="rec-title"><span>查看全部教程</span></div>
+          <div class="rec-desc">进入教程板块，查看更多使用指南。</div>
+        </a>
+      </div>
 
     </div>
 
@@ -632,10 +634,54 @@
   var tabs = Array.prototype.slice.call(document.querySelectorAll('.tab'));
   var indicator = document.getElementById('tabIndicator');
   var currentFilter = 'all';
+  var tutorialsRec = document.getElementById('tutorialsRec');
+  var archiveOnlyTutorialIds = {
+    'free-ai-api-sites': true,
+    'ai-prompt-guide': true,
+    'free-game-resources': true,
+    'temp-mail-guide': true
+  };
 
   function moveIndicator(tab){
     indicator.style.width = tab.offsetWidth + 'px';
     indicator.style.transform = 'translateX(' + tab.offsetLeft + 'px)';
+  }
+
+  function esc(s){
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function tutorialDateValue(t){
+    return Date.parse(t.date || '') || 0;
+  }
+
+  function sortTutorials(list){
+    return list.slice().sort(function(a,b){
+      var pinnedDiff = Number(!!b.pinned) - Number(!!a.pinned);
+      return pinnedDiff || tutorialDateValue(b) - tutorialDateValue(a);
+    });
+  }
+
+  function renderTutorialsRec(list){
+    if (!tutorialsRec) return;
+    var items = sortTutorials(list).filter(function(t){
+      return t && t.title && !archiveOnlyTutorialIds[t.id];
+    }).slice(0, 4);
+    tutorialsRec.innerHTML = items.map(function(t){
+      var href = t.url || ('tutorials/#' + encodeURIComponent(t.id));
+      return '<a href="' + esc(href) + '" class="rec-item">' +
+        '<div class="rec-title"><span>' + esc(t.title) + '</span></div>' +
+        '<div class="rec-desc">' + esc(t.summary || t.date || '点击查看教程内容') + '</div>' +
+      '</a>';
+    }).join('') + '<a href="tutorials/" class="rec-item"><div class="rec-title"><span>查看全部教程</span></div><div class="rec-desc">进入教程板块，查看更多使用指南。</div></a>';
+  }
+
+  function loadTutorialsRec(){
+    if (!tutorialsRec) return;
+    fetch('https://xcbot-nav-api.lingxiaoyiyu.workers.dev/tutorials?t=' + Date.now(), { cache: 'no-store' })
+      .then(function(res){ return res.ok ? res.json() : []; })
+      .then(function(list){ renderTutorialsRec(Array.isArray(list) ? list : []); })
+      .catch(function(){ renderTutorialsRec([]); });
   }
 
   function applyFilters(){
@@ -672,7 +718,7 @@
     });
   });
 
-  window.addEventListener('load', function(){ moveIndicator(document.querySelector('.tab.active')); });
+  window.addEventListener('load', function(){ moveIndicator(document.querySelector('.tab.active')); loadTutorialsRec(); });
   window.addEventListener('resize', function(){ moveIndicator(document.querySelector('.tab.active')); });
 
   // Spotlight hover effect
