@@ -190,15 +190,8 @@ let activeTag = '全部';
 // ─── Load ─────────────────────────────────────────
 async function loadSites() {
   try {
-    const res = await (async () => {
-      try {
-        const r = await fetch(API_BASE + '/common-sites?t=' + Date.now(), { cache: 'no-store' });
-        if (r.ok) return r;
-        throw new Error('Worker unavailable');
-      } catch {
-        return await fetch('sites.json?t=' + Date.now());
-      }
-    })();
+    const res = await fetch(API_BASE + '/common-sites?t=' + Date.now(), { cache: 'no-store' });
+    if (!res.ok) throw new Error('Worker unavailable');
     const data = await res.json();
  
     // New format: { announcement, sites }
@@ -283,9 +276,8 @@ function esc(s) {
 }
 
 function getOpenUrl(site) {
-  if (site.openUrl) return site.openUrl;
   if (site.id) return API_BASE + '/common-sites/open?id=' + encodeURIComponent(site.id);
-  return site.url || '#';
+  return '#';
 }
 
 function renderCategoryFilters() {

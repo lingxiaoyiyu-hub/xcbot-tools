@@ -364,13 +364,8 @@ async function loadData() {
       showLog('statusBox', '请先在「系统配置」填写并保存 Worker 管理密钥，后台需要密钥才能读取完整跳转地址。', 'info');
       return;
     }
-    var res;
-    try {
-      res = await fetch(API_BASE + '/common-sites?t=' + Date.now(), { cache: 'no-store', headers: { 'X-Admin-Key': adminKey } });
-      if (!res.ok) throw new Error('Worker unavailable');
-    } catch (e) {
-      res = await fetch('sites.json?t=' + Date.now());
-    }
+    var res = await fetch(API_BASE + '/common-sites?t=' + Date.now(), { cache: 'no-store', headers: { 'X-Admin-Key': adminKey } });
+    if (!res.ok) throw new Error('Worker unavailable');
     db = await res.json();
     if (Array.isArray(db)) {
       db = { announcement: { enabled: false, text: '' }, sites: db };

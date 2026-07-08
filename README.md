@@ -74,7 +74,7 @@
 
 - **前端**：原生 HTML / CSS / JavaScript（无框架、无构建工具）
 - **部署**：GitHub Pages + GitHub Actions
-- **CMS**：导航类后台通过 Cloudflare Worker 写入 KV，静态 `sites.json` 作为兜底数据
+- **CMS**：导航类后台通过 Cloudflare Worker 写入 KV
 
 ## 🚀 部署方式
 
@@ -91,9 +91,9 @@
 
 - 通过 Cloudflare Worker 管理密钥写入 KV，保存后前台实时读取
 - 公益 API 导航数据存放在 KV 的 `sites` key
-- 常用网站导航数据存放在 KV 的 `commonSites` key，并支持自定义分类
+- 常用网站导航数据只存放在 KV 的 `commonSites` key，并支持自定义分类
 - 管理密钥仅保存在浏览器 LocalStorage，不上传至任何第三方
-- 静态 `sites.json` 文件作为 Worker 不可用时的兜底数据
+- 前台只读取去除跳转地址后的公开数据，真实跳转地址只在 Worker 后台读取并通过 `/common-sites/open?id=...` 跳转
 
 ## 📄 License
 
