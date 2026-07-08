@@ -124,7 +124,7 @@ header{background:var(--card);border-bottom:1px solid var(--border);position:sti
       title: '免费公益 AI/API 站点怎么找？',
       summary: '用 XCbot 公益 AI/API 导航查找免费大模型、AI 绘图和 API 中转站点，并判断可用性和使用风险。',
       date: '2026-07-07',
-      pinned: true,
+      pinned: false,
       content: '这篇教程已经发布为独立页面，方便搜索引擎收录和分享。点击下方链接阅读全文。',
       tags: ['AI/API', '公益站导航', '免费资源'],
       links: [{ label: '阅读全文', url: 'free-ai-api-sites.html' }]
@@ -134,7 +134,7 @@ header{background:var(--card);border-bottom:1px solid var(--border);position:sti
       title: 'AI 绘图提示词怎么写？',
       summary: '从主体、场景、风格、光线和构图拆解提示词写法，适合新手快速复制和改写。',
       date: '2026-07-07',
-      pinned: true,
+      pinned: false,
       content: '这篇教程已经发布为独立页面，方便搜索引擎收录和分享。点击下方链接阅读全文。',
       tags: ['AI 绘图', '提示词'],
       links: [{ label: '阅读全文', url: 'ai-prompt-guide.html' }]
@@ -144,7 +144,7 @@ header{background:var(--card);border-bottom:1px solid var(--border);position:sti
       title: '免费游戏资源怎么使用？',
       summary: '了解如何使用游戏资源库搜索资源，识别百度网盘和夸克网盘入口，并注意版权和安全风险。',
       date: '2026-07-07',
-      pinned: true,
+      pinned: false,
       content: '这篇教程已经发布为独立页面，方便搜索引擎收录和分享。点击下方链接阅读全文。',
       tags: ['游戏资源', '资源索引'],
       links: [{ label: '阅读全文', url: 'free-game-resources.html' }]
@@ -154,17 +154,39 @@ header{background:var(--card);border-bottom:1px solid var(--border);position:sti
       title: '临时邮箱怎么用？',
       summary: '介绍临时邮箱、一次性邮箱和邮件转发服务的使用场景，适合注册测试和保护真实邮箱隐私。',
       date: '2026-07-07',
-      pinned: true,
+      pinned: false,
       content: '这篇教程已经发布为独立页面，方便搜索引擎收录和分享。点击下方链接阅读全文。',
       tags: ['临时邮箱', '隐私工具'],
       links: [{ label: '阅读全文', url: 'temp-mail-guide.html' }]
     }
   ];
+  var archiveOnlyTutorialIds = {
+    'free-ai-api-sites': true,
+    'ai-prompt-guide': true,
+    'free-game-resources': true,
+    'temp-mail-guide': true
+  };
+
+  function normalizeTutorial(t){
+    if (archiveOnlyTutorialIds[t.id]) {
+      var item = Object.assign({}, t);
+      item.pinned = false;
+      return item;
+    }
+    return t;
+  }
 
   function esc(s){ return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
+  function dateValue(t){
+    return Date.parse(t.date || '') || 0;
+  }
+
   function sorted(list){
-    return list.slice().sort(function(a,b){ return Number(!!b.pinned) - Number(!!a.pinned); });
+    return list.slice().sort(function(a,b){
+      var pinnedDiff = Number(!!b.pinned) - Number(!!a.pinned);
+      return pinnedDiff || dateValue(b) - dateValue(a);
+    });
   }
 
   function renderList(){
@@ -215,12 +237,12 @@ header{background:var(--card);border-bottom:1px solid var(--border);position:sti
     .then(function(res){ return res.ok ? res.json() : []; })
     .then(function(data){
       var remote = Array.isArray(data) ? data : [];
-      tutorials = remote.length ? remote.concat(fallbackTutorials) : fallbackTutorials;
+      tutorials = (remote.length ? remote.concat(fallbackTutorials) : fallbackTutorials).map(normalizeTutorial);
       renderList();
       renderArticle(decodeURIComponent(location.hash.replace(/^#/, '')) || (sorted(tutorials)[0] && sorted(tutorials)[0].id));
     })
     .catch(function(){
-      tutorials = fallbackTutorials;
+      tutorials = fallbackTutorials.map(normalizeTutorial);
       renderList();
       renderArticle(decodeURIComponent(location.hash.replace(/^#/, '')) || fallbackTutorials[0].id);
     });
