@@ -73,6 +73,39 @@ async function getCommonStats(env) {
   return normalizeCommonStats(JSON.parse(raw));
 }
 
+function emptySiteStats() {
+  return {
+    pageViews: { total: 0, byDay: {}, byPage: {} },
+    linkClicks: { total: 0, byDay: {}, byTarget: {} },
+    updatedAt: null,
+  };
+}
+
+function normalizeSiteStats(value) {
+  if (!value || typeof value !== 'object') return emptySiteStats();
+  const pageViews = value.pageViews || {};
+  const linkClicks = value.linkClicks || {};
+  return {
+    pageViews: {
+      total: Number(pageViews.total || 0),
+      byDay: pageViews.byDay && typeof pageViews.byDay === 'object' ? pageViews.byDay : {},
+      byPage: pageViews.byPage && typeof pageViews.byPage === 'object' ? pageViews.byPage : {},
+    },
+    linkClicks: {
+      total: Number(linkClicks.total || 0),
+      byDay: linkClicks.byDay && typeof linkClicks.byDay === 'object' ? linkClicks.byDay : {},
+      byTarget: linkClicks.byTarget && typeof linkClicks.byTarget === 'object' ? linkClicks.byTarget : {},
+    },
+    updatedAt: value.updatedAt || null,
+  };
+}
+
+async function getSiteStats(env) {
+  const raw = await env.NAV_KV.get('siteStats');
+  if (!raw) return emptySiteStats();
+  return normalizeSiteStats(JSON.parse(raw));
+}
+
 function todayKey() {
   return new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString().split('T')[0];
 }
@@ -99,6 +132,107 @@ async function saveCommonStats(env, stats) {
   });
   stats.updatedAt = new Date().toISOString();
   await env.NAV_KV.put('commonStats', JSON.stringify(stats, null, 2));
+}
+
+function trimNestedDailyStats(stats) {
+  stats.pageViews.byDay = trimDailyMap(stats.pageViews.byDay);
+  stats.linkClicks.byDay = trimDailyMap(stats.linkClicks.byDay);
+  Object.keys(stats.pageViews.byPage || {}).forEach(key => {
+    stats.pageViews.byPage[key].byDay = trimDailyMap(stats.pageViews.byPage[key].byDay || {});
+  });
+  Object.keys(stats.linkClicks.byTarget || {}).forEach(key => {
+    stats.linkClicks.byTarget[key].byDay = trimDailyMap(stats.linkClicks.byTarget[key].byDay || {});
+  });
+}
+
+async function saveSiteStats(env, stats) {
+  trimNestedDailyStats(stats);
+  stats.updatedAt = new Date().toISOString();
+  await env.NAV_KV.put('siteStats', JSON.stringify(stats, null, 2));
+}
+
+function cleanPath(path) {
+  const value = (path || '/').toString().trim();
+  if (!value || value[0] !== '/') return '/';
+  return value.split('#')[0].split('?')[0].slice(0, 160) || '/';
+}
+
+function cleanLabel(value, fallback = '') {
+  return (value || fallback || '').toString().trim().slice(0, 120);
+}
+
+async function recordSitePageView(env, payload = {}) {
+  const stats = await getSiteStats(env);
+  const day = todayKey();
+  const path = cleanPath(payload.path);
+  stats.pageViews.total += 1;
+  bumpDay(stats.pageViews, day);
+  stats.pageViews.byPage[path] = stats.pageViews.byPage[path] || { count: 0, byDay: {}, lastAt: null, title: '' };
+  stats.pageViews.byPage[path].count = Number(stats.pageViews.byPage[path].count || 0) + 1;
+  bumpDay(stats.pageViews.byPage[path], day);
+  stats.pageViews.byPage[path].lastAt = new Date().toISOString();
+  stats.pageViews.byPage[path].title = cleanLabel(payload.title, stats.pageViews.byPage[path].title || path);
+  await saveSiteStats(env, stats);
+}
+
+async function recordSiteLinkClick(env, payload = {}) {
+  const stats = await getSiteStats(env);
+  const day = todayKey();
+  const id = cleanLabel(payload.id || payload.targetId || payload.path || 'unknown', 'unknown');
+  stats.linkClicks.total += 1;
+  bumpDay(stats.linkClicks, day);
+  stats.linkClicks.byTarget[id] = stats.linkClicks.byTarget[id] || { count: 0, byDay: {}, lastAt: null, label: '', type: '', category: '', path: '' };
+  stats.linkClicks.byTarget[id].count = Number(stats.linkClicks.byTarget[id].count || 0) + 1;
+  bumpDay(stats.linkClicks.byTarget[id], day);
+  stats.linkClicks.byTarget[id].lastAt = new Date().toISOString();
+  stats.linkClicks.byTarget[id].label = cleanLabel(payload.label, stats.linkClicks.byTarget[id].label || id);
+  stats.linkClicks.byTarget[id].type = cleanLabel(payload.type, stats.linkClicks.byTarget[id].type || 'link');
+  stats.linkClicks.byTarget[id].category = cleanLabel(payload.category, stats.linkClicks.byTarget[id].category || '');
+  stats.linkClicks.byTarget[id].path = cleanPath(payload.path || stats.linkClicks.byTarget[id].path || '/');
+  await saveSiteStats(env, stats);
+}
+
+function mergeDailyMap(target, source) {
+  Object.keys(source || {}).forEach(day => {
+    target[day] = Number(target[day] || 0) + Number(source[day] || 0);
+  });
+}
+
+async function getCombinedSiteStats(env) {
+  const stats = normalizeSiteStats(await getSiteStats(env));
+  const commonStats = normalizeCommonStats(await getCommonStats(env));
+  const commonSites = normalizePayload(await getCommonSites(env)).sites;
+
+  if (commonStats.views.total) {
+    stats.pageViews.total += Number(commonStats.views.total || 0);
+    mergeDailyMap(stats.pageViews.byDay, commonStats.views.byDay);
+    const page = stats.pageViews.byPage['/common-nav/'] || { count: 0, byDay: {}, lastAt: null, title: '常用网站导航' };
+    page.count += Number(commonStats.views.total || 0);
+    mergeDailyMap(page.byDay, commonStats.views.byDay);
+    page.title = page.title || '常用网站导航';
+    stats.pageViews.byPage['/common-nav/'] = page;
+  }
+
+  if (commonStats.opens.total) {
+    stats.linkClicks.total += Number(commonStats.opens.total || 0);
+    mergeDailyMap(stats.linkClicks.byDay, commonStats.opens.byDay);
+    Object.keys(commonStats.opens.bySite || {}).forEach(id => {
+      const legacy = commonStats.opens.bySite[id] || {};
+      const site = commonSites.find(item => (item.id || '').toString() === id) || {};
+      const targetId = 'common-site:' + id;
+      const target = stats.linkClicks.byTarget[targetId] || { count: 0, byDay: {}, lastAt: null, label: '', type: 'common-site', category: '', path: '/common-nav/' };
+      target.count += Number(legacy.count || 0);
+      mergeDailyMap(target.byDay, legacy.byDay);
+      target.lastAt = target.lastAt || legacy.lastAt || null;
+      target.label = target.label || site.name || id;
+      target.type = 'common-site';
+      target.category = target.category || site.category || '';
+      target.path = '/common-nav/';
+      stats.linkClicks.byTarget[targetId] = target;
+    });
+  }
+
+  return stats;
 }
 
 async function recordCommonStat(env, type, siteId = '') {
@@ -189,6 +323,37 @@ export default {
       return json({ ok: true, service: 'xcbot-nav-api' });
     }
 
+    if (pathname === '/stats/track' && request.method === 'POST') {
+      try {
+        const origin = request.headers.get('Origin') || '';
+        if (origin && origin !== ALLOWED_ORIGIN) {
+          return json({ error: 'Origin not allowed.' }, { status: 403 });
+        }
+        const raw = await request.text();
+        const body = raw ? JSON.parse(raw) : {};
+        if ((body.type || body.event) !== 'page_view') {
+          return json({ error: 'Unsupported stats event.' }, { status: 400 });
+        }
+        await recordSitePageView(env, body);
+        return json({ ok: true });
+      } catch (error) {
+        return json({ error: 'Invalid stats event.' }, { status: 400 });
+      }
+    }
+
+    if (pathname === '/stats' && request.method === 'GET') {
+      if (!requireAdmin(request, env)) {
+        return json({ error: 'Unauthorized.' }, { status: 401 });
+      }
+      try {
+        return json(await getCombinedSiteStats(env), {
+          headers: { 'Cache-Control': 'no-store' },
+        });
+      } catch (error) {
+        return json({ error: 'Failed to read stats.' }, { status: 500 });
+      }
+    }
+
     if (pathname === '/sites' && request.method === 'GET') {
       try {
         const data = await getSites(env);
@@ -226,7 +391,13 @@ export default {
           return json({ error: 'Invalid link.' }, { status: 400 });
         }
         try {
-          await recordCommonStat(env, 'open', id);
+          await recordSiteLinkClick(env, {
+            id: 'common-site:' + id,
+            label: site.name || id,
+            type: 'common-site',
+            category: site.category || '',
+            path: '/common-nav/',
+          });
         } catch (error) {
           // Statistics should never block a valid redirect.
         }
@@ -242,11 +413,12 @@ export default {
         if (origin && origin !== ALLOWED_ORIGIN) {
           return json({ error: 'Origin not allowed.' }, { status: 403 });
         }
-        const body = await request.json().catch(() => ({}));
+        const raw = await request.text();
+        const body = raw ? JSON.parse(raw) : {};
         if ((body.type || body.event) !== 'view') {
           return json({ error: 'Unsupported stats event.' }, { status: 400 });
         }
-        await recordCommonStat(env, 'view');
+        await recordSitePageView(env, { path: '/common-nav/', title: '常用网站导航' });
         return json({ ok: true });
       } catch (error) {
         return json({ error: 'Invalid stats event.' }, { status: 400 });
@@ -258,7 +430,7 @@ export default {
         return json({ error: 'Unauthorized.' }, { status: 401 });
       }
       try {
-        return json(await getCommonStats(env), {
+        return json(await getCombinedSiteStats(env), {
           headers: { 'Cache-Control': 'no-store' },
         });
       } catch (error) {

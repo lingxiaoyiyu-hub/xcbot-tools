@@ -288,23 +288,6 @@ function getOpenUrl(site) {
   return site.url || '#';
 }
 
-function trackPageView() {
-  const url = API_BASE + '/common-sites/track';
-  const body = JSON.stringify({ type: 'view' });
-  try {
-    if (navigator.sendBeacon) {
-      const blob = new Blob([body], { type: 'text/plain' });
-      if (navigator.sendBeacon(url, blob)) return;
-    }
-  } catch (e) {}
-  fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain' },
-    body: body,
-    keepalive: true
-  }).catch(() => {});
-}
-
 function renderCategoryFilters() {
   const wrap = document.getElementById('tagsFilter');
   const categories = Array.from(new Set(allSites.map(s => (s.category || '未分类').trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'zh-CN'));
@@ -327,10 +310,8 @@ function bindCategoryButtons() {
 
 bindCategoryButtons();
  
-window.onload = function() {
-  loadSites();
-  trackPageView();
-};
+window.onload = loadSites;
 </script>
+<script src="/stats.js" defer></script>
 </body>
 </html>

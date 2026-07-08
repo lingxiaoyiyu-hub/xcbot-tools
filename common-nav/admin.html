@@ -191,10 +191,25 @@ footer{text-align:center;padding:14px;font-size:.76rem;color:var(--muted);border
         <button class="btn btn-ghost btn-sm" onclick="refreshStats()">刷新</button>
       </div>
       <div style="font-size:.84rem;color:var(--muted);line-height:1.6">
-        这里统计常用网站导航前台访问量，以及每个站点「打开链接」的点击次数。统计不记录用户身份、IP 或设备指纹。
+        这里统计全站页面访问量，以及常用网站导航里「打开链接」的点击次数。统计不记录用户身份、IP 或设备指纹。
       </div>
       <div class="stats-grid" id="statsSummary"></div>
       <div class="stat-note" id="statsUpdated"></div>
+      <div class="panel-title">热门页面</div>
+      <div class="table-wrap">
+        <table class="stats-table">
+          <thead>
+            <tr>
+              <th>页面</th>
+              <th>累计访问</th>
+              <th>今日访问</th>
+              <th>最后访问</th>
+            </tr>
+          </thead>
+          <tbody id="pageStatsTableBody"></tbody>
+        </table>
+      </div>
+      <div class="panel-title">常用网站导航点击</div>
       <div class="table-wrap">
         <table class="stats-table">
           <thead>
@@ -205,7 +220,7 @@ footer{text-align:center;padding:14px;font-size:.76rem;color:var(--muted);border
               <th>最后打开</th>
             </tr>
           </thead>
-          <tbody id="statsTableBody"></tbody>
+          <tbody id="linkStatsTableBody"></tbody>
         </table>
       </div>
       <div class="status-box" id="statusBoxStats"></div>
@@ -465,16 +480,28 @@ function renderAnnounce() {
 }
 
 function defaultStats() {
-  return { views: { total: 0, byDay: {} }, opens: { total: 0, byDay: {}, bySite: {} }, updatedAt: null };
+  return {
+    pageViews: { total: 0, byDay: {}, byPage: {} },
+    linkClicks: { total: 0, byDay: {}, byTarget: {} },
+    updatedAt: null
+  };
 }
 
 function normalizeStats(raw) {
   raw = raw && typeof raw === 'object' ? raw : {};
-  var views = raw.views || {};
-  var opens = raw.opens || {};
+  var pageViews = raw.pageViews || {};
+  var linkClicks = raw.linkClicks || {};
   return {
-    views: { total: Number(views.total || 0), byDay: views.byDay || {} },
-    opens: { total: Number(opens.total || 0), byDay: opens.byDay || {}, bySite: opens.bySite || {} },
+    pageViews: {
+      total: Number(pageViews.total || 0),
+      byDay: pageViews.byDay || {},
+      byPage: pageViews.byPage || {}
+    },
+    linkClicks: {
+      total: Number(linkClicks.total || 0),
+      byDay: linkClicks.byDay || {},
+      byTarget: linkClicks.byTarget || {}
+    },
     updatedAt: raw.updatedAt || null
   };
 }
@@ -488,7 +515,7 @@ async function loadStats() {
     return;
   }
   try {
-    var res = await fetch(API_BASE + '/common-sites/stats?t=' + Date.now(), {
+    var res = await fetch(API_BASE + '/stats?t=' + Date.now(), {
       cache: 'no-store',
       headers: { 'X-Admin-Key': adminKey }
     });
@@ -531,21 +558,44 @@ function formatDateTime(value) {
 function renderStats() {
   var summary = document.getElementById('statsSummary');
   var updated = document.getElementById('statsUpdated');
-  var body = document.getElementById('statsTableBody');
-  if (!summary || !updated || !body) return;
+  var pageBody = document.getElementById('pageStatsTableBody');
+  var linkBody = document.getElementById('linkStatsTableBody');
+  if (!summary || !updated || !pageBody || !linkBody) return;
   var day = todayLocalKey();
-  var views = stats.views || { total: 0, byDay: {} };
-  var opens = stats.opens || { total: 0, byDay: {}, bySite: {} };
+  var pageViews = stats.pageViews || { total: 0, byDay: {}, byPage: {} };
+  var linkClicks = stats.linkClicks || { total: 0, byDay: {}, byTarget: {} };
+  var pageRows = Object.keys(pageViews.byPage || {}).map(function(path) {
+    var item = pageViews.byPage[path] || {};
+    return {
+      path: path,
+      title: item.title || path,
+      count: Number(item.count || 0),
+      today: Number(((item.byDay || {})[day]) || 0),
+      lastAt: item.lastAt || ''
+    };
+  }).sort(function(a, b) {
+    return b.count - a.count || a.path.localeCompare(b.path, 'zh-CN');
+  });
+
   summary.innerHTML =
-    statCard('累计访问', views.total) +
-    statCard('今日访问', dayCount(views, day)) +
-    statCard('累计打开链接', opens.total) +
-    statCard('今日打开链接', dayCount(opens, day));
+    statCard('全站累计访问', pageViews.total) +
+    statCard('今日访问', dayCount(pageViews, day)) +
+    statCard('已统计页面', pageRows.length) +
+    statCard('导航链接打开', linkClicks.total);
   updated.textContent = stats.updatedAt ? '最后更新：' + formatDateTime(stats.updatedAt) : '暂无统计数据。';
 
-  var bySite = opens.bySite || {};
+  pageBody.innerHTML = pageRows.map(function(row) {
+    return '<tr>' +
+      '<td class="site-cell"><strong>' + esc(row.title || row.path) + '</strong><span>' + esc(row.path) + '</span></td>' +
+      '<td class="num-cell">' + row.count.toLocaleString('zh-CN') + '</td>' +
+      '<td class="num-cell">' + row.today.toLocaleString('zh-CN') + '</td>' +
+      '<td>' + esc(formatDateTime(row.lastAt)) + '</td>' +
+    '</tr>';
+  }).join('') || '<tr><td colspan="4" style="color:var(--muted);text-align:center;padding:24px">暂无页面访问数据。</td></tr>';
+
+  var byTarget = linkClicks.byTarget || {};
   var rows = db.sites.map(function(site) {
-    var item = bySite[site.id] || {};
+    var item = byTarget['common-site:' + site.id] || byTarget[site.id] || {};
     return {
       site: site,
       count: Number(item.count || 0),
@@ -556,14 +606,14 @@ function renderStats() {
     return b.count - a.count || String(a.site.name || '').localeCompare(String(b.site.name || ''), 'zh-CN');
   });
 
-  body.innerHTML = rows.map(function(row) {
+  linkBody.innerHTML = rows.map(function(row) {
     return '<tr>' +
       '<td class="site-cell"><strong>' + esc(row.site.name || '未命名站点') + '</strong><span>' + esc(row.site.category || '未分类') + ' · ' + esc(row.site.domain || '') + '</span></td>' +
       '<td class="num-cell">' + row.count.toLocaleString('zh-CN') + '</td>' +
       '<td class="num-cell">' + row.today.toLocaleString('zh-CN') + '</td>' +
       '<td>' + esc(formatDateTime(row.lastAt)) + '</td>' +
     '</tr>';
-  }).join('') || '<tr><td colspan="4" style="color:var(--muted);text-align:center;padding:24px">暂无站点数据。</td></tr>';
+  }).join('') || '<tr><td colspan="4" style="color:var(--muted);text-align:center;padding:24px">暂无链接点击数据。</td></tr>';
 }
 
 function toggleAnnounce() {
