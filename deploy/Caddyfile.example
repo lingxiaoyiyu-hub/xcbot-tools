@@ -1,0 +1,12 @@
+xcbot.cyou {
+    handle_path /api/* {
+        reverse_proxy 127.0.0.1:8787
+    }
+
+    root * /srv/xcbot
+    file_server
+}
+
+ai.xcbot.cyou {
+    reverse_proxy 127.0.0.1:20128
+}

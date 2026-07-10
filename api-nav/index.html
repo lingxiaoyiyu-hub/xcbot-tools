@@ -244,7 +244,7 @@ async function loadSites() {
         if (r.ok) return r;
         throw new Error('Static data unavailable');
       } catch {
-        return await fetch('https://xcbot-nav-api.lingxiaoyiyu.workers.dev/sites?t=' + Date.now(), { cache: 'no-store' });
+        return await fetch('/api/sites?t=' + Date.now(), { cache: 'no-store' });
       }
     })();
     const data = await res.json();
@@ -360,7 +360,7 @@ async function submitFeedback() {
   };
 
   try {
-    const res = await fetch('https://xcbot-nav-api.lingxiaoyiyu.workers.dev/feedback', {
+    const res = await fetch('/api/feedback', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)

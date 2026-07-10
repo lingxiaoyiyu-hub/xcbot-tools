@@ -2,8 +2,6 @@ name: Sync public navigation data
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "*/30 * * * *"
 
 permissions:
   contents: write
@@ -18,7 +16,7 @@ jobs:
 
       - name: Download public data
         env:
-          API_BASE: https://xcbot-nav-api.lingxiaoyiyu.workers.dev
+          API_BASE: https://xcbot.cyou/api
         run: |
           set -e
           curl --fail --silent --show-error --location "$API_BASE/sites" -o api-nav/sites.json

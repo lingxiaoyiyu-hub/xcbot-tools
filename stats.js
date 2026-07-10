@@ -1,5 +1,5 @@
 (function () {
-  var API_BASE = 'https://xcbot-nav-api.lingxiaoyiyu.workers.dev';
+  var API_BASE = '/api';
 
   function cleanPath() {
     var path = window.location.pathname || '/';

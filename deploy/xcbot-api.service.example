@@ -1,0 +1,18 @@
+[Unit]
+Description=xcbot local navigation API
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/opt/xcbot-primary
+EnvironmentFile=/etc/xcbot-api.env
+ExecStart=/usr/bin/node server/index.mjs
+Restart=always
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

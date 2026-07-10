@@ -420,7 +420,7 @@ async function loadData() {
   try {
     var res;
     try {
-      res = await fetch('https://xcbot-nav-api.lingxiaoyiyu.workers.dev/sites?t=' + Date.now(), { cache: 'no-store' });
+      res = await fetch('/api/sites?t=' + Date.now(), { cache: 'no-store' });
       if (!res.ok) throw new Error('Worker unavailable');
     } catch (e) {
       res = await fetch('sites.json?t=' + Date.now());
@@ -550,7 +550,7 @@ function formatTutorialLinks(links) {
 
 async function loadTutorials() {
   try {
-    var res = await fetch('https://xcbot-nav-api.lingxiaoyiyu.workers.dev/tutorials?t=' + Date.now(), { cache: 'no-store' });
+    var res = await fetch('/api/tutorials?t=' + Date.now(), { cache: 'no-store' });
     tutorials = res.ok ? await res.json() : [];
   } catch (e) {
     tutorials = [];
@@ -635,7 +635,7 @@ async function publishTutorials(statusEl) {
   }
   try {
     showLog(statusEl, '正在保存教程到 Cloudflare KV...', 'info');
-    var res = await fetch('https://xcbot-nav-api.lingxiaoyiyu.workers.dev/tutorials', {
+    var res = await fetch('/api/tutorials', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', 'X-Admin-Key': adminKey },
       body: JSON.stringify(tutorials)
@@ -663,7 +663,7 @@ async function loadFeedback() {
 
   var list = [];
   try {
-    var res = await fetch('https://xcbot-nav-api.lingxiaoyiyu.workers.dev/feedback', {
+    var res = await fetch('/api/feedback', {
       headers: { 'X-Admin-Key': adminKey }
     });
     if (!res.ok) throw new Error(String(res.status));
@@ -703,7 +703,7 @@ async function loadFeedback() {
 async function fetchFeedbackList() {
   var adminKey = localStorage.getItem('nav_admin_key') || '';
   if (!adminKey) return [];
-  var res = await fetch('https://xcbot-nav-api.lingxiaoyiyu.workers.dev/feedback', {
+  var res = await fetch('/api/feedback', {
     headers: { 'X-Admin-Key': adminKey }
   });
   return res.ok ? await res.json() : [];
@@ -712,7 +712,7 @@ async function fetchFeedbackList() {
 async function saveFeedback(list) {
   var adminKey = localStorage.getItem('nav_admin_key') || '';
   if (!adminKey) return false;
-  var res = await fetch('https://xcbot-nav-api.lingxiaoyiyu.workers.dev/feedback', {
+  var res = await fetch('/api/feedback', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', 'X-Admin-Key': adminKey },
     body: JSON.stringify(list)
@@ -751,7 +751,7 @@ async function publish(statusEl) {
     return false;
   }
 
-  var apiUrl = 'https://xcbot-nav-api.lingxiaoyiyu.workers.dev/sites';
+  var apiUrl = '/api/sites';
   var headers = {
     'Content-Type': 'application/json',
     'X-Admin-Key': adminKey

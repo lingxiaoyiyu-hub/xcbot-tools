@@ -237,7 +237,7 @@ header{background:var(--card);border-bottom:1px solid var(--border);position:sti
   fetch('tutorials.json?t=' + Date.now(), { cache: 'no-store' })
     .then(function(res){ return res.ok ? res.json() : Promise.reject(new Error('Static data unavailable')); })
     .catch(function(){
-      return fetch('https://xcbot-nav-api.lingxiaoyiyu.workers.dev/tutorials?t=' + Date.now(), { cache: 'no-store' })
+        return fetch('/api/tutorials?t=' + Date.now(), { cache: 'no-store' })
         .then(function(res){ return res.ok ? res.json() : []; });
     })
     .then(function(data){
