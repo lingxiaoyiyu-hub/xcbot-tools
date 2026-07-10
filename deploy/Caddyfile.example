@@ -1,5 +1,23 @@
 xcbot.cyou {
+    handle /api/seo* {
+        reverse_proxy 127.0.0.1:8787
+    }
+
+    @sitemaps path /sitemap.xml /sitemap.txt
+    handle @sitemaps {
+        reverse_proxy 127.0.0.1:8787
+    }
+
     handle_path /api/* {
+        reverse_proxy 127.0.0.1:8787
+    }
+
+    @adminEndpoints path /admin/login /admin/logout /admin/session
+    handle @adminEndpoints {
+        reverse_proxy 127.0.0.1:8787
+    }
+
+    handle /seo* {
         reverse_proxy 127.0.0.1:8787
     }
 

@@ -1,5 +1,8 @@
 User-agent: *
 Allow: /
+Disallow: /admin/
+Disallow: /api-nav/admin.html
+Disallow: /common-nav/admin.html
 
 Sitemap: https://xcbot.cyou/sitemap.xml
 Sitemap: https://xcbot.cyou/sitemap.txt

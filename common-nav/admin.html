@@ -80,6 +80,7 @@ header{height:56px;border-bottom:1px solid var(--border);display:flex;align-item
 @media(max-width:480px){.stats-grid{grid-template-columns:1fr}}
 hr.divider{border:none;border-top:1px solid var(--border);margin:4px 0}
 footer{text-align:center;padding:14px;font-size:.76rem;color:var(--muted);border-top:1px solid var(--border)}
+body.embedded{background:var(--bg)}body.embedded header{display:none}body.embedded .tabs .tab:last-child{display:none}body.embedded #adminContent{display:flex}
 </style>
 <link rel="stylesheet" href="../shared-white.css">
 <link rel="icon" href="/favicon.ico" sizes="any">
@@ -287,6 +288,8 @@ var db = { announcement: { enabled: false, text: '' }, sites: [] };
 var stats = defaultStats();
 var currentId = null;
 var announceEnabled = false;
+var embeddedMode = new URLSearchParams(location.search).get('embedded') === '1';
+if (embeddedMode) document.body.classList.add('embedded');
 var ADMIN_HASH = 'a0d848a9b27fd6ff66e2a91a5ccbec2a3e25512c7ada69eceb52ce8b756ab59d';
 
 function esc(s) {
@@ -313,6 +316,8 @@ async function checkLogin() {
     var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
     var hex = [].slice.call(new Uint8Array(buf)).map(function(x){ return x.toString(16).padStart(2,'0'); }).join('');
     if (hex === ADMIN_HASH) {
+      sessionStorage.setItem('xcbot_admin_unlocked', '1');
+      localStorage.setItem('nav_admin_key', 'session');
       document.getElementById('loginOverlay').style.display = 'none';
       document.getElementById('adminContent').style.display = 'flex';
       loadConfig();
@@ -329,7 +334,15 @@ async function checkLogin() {
   }
 }
 
-window.onload = function(){ document.getElementById('loginInput').focus(); };
+window.onload = function(){
+  if (embeddedMode && sessionStorage.getItem('xcbot_admin_unlocked') === '1') {
+    document.getElementById('loginOverlay').style.display = 'none';
+    document.getElementById('adminContent').style.display = 'flex';
+    loadConfig(); loadData(); loadStats();
+    return;
+  }
+  document.getElementById('loginInput').focus();
+};
 
 function switchTab(name) {
   var panels = ['sites', 'stats', 'announce', 'settings'];

@@ -310,6 +310,31 @@ function normalizeTutorial(item) {
   };
 }
 
+async function getSeoArticles(env) {
+  const raw = await env.NAV_KV.get('seoArticles');
+  if (!raw) return [];
+  const parsed = JSON.parse(raw);
+  return Array.isArray(parsed) ? parsed : [];
+}
+
+function normalizeSeoArticle(item) {
+  const rawSlug = (item.slug || item.id || '').toString().trim().toLowerCase();
+  const slug = rawSlug
+    .replace(/[^a-z0-9\u4e00-\u9fff]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 80);
+  return {
+    id: (item.id || slug || String(Date.now())).toString(),
+    slug,
+    title: (item.title || '').toString().trim().slice(0, 160),
+    description: (item.description || item.summary || '').toString().trim().slice(0, 300),
+    content: (item.content || '').toString().trim().slice(0, 100000),
+    tags: Array.isArray(item.tags) ? item.tags.map(tag => tag.toString().trim()).filter(Boolean).slice(0, 12) : [],
+    date: (item.date || new Date().toISOString().split('T')[0]).toString().trim(),
+    updatedAt: (item.updatedAt || new Date().toISOString()).toString(),
+  };
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -574,6 +599,59 @@ export default {
         return json({ ok: true, id: item.id, count: list.length });
       } catch (error) {
         return json({ error: 'Invalid tutorial data.' }, { status: 400 });
+      }
+    }
+
+    if (pathname === '/seo' && request.method === 'GET') {
+      try {
+        const list = await getSeoArticles(env);
+        return json(list, { headers: { 'Cache-Control': 'public, max-age=60' } });
+      } catch (error) {
+        return json({ error: 'Failed to read SEO articles.' }, { status: 500 });
+      }
+    }
+
+    if (pathname === '/seo' && request.method === 'PUT') {
+      if (!requireAdmin(request, env)) {
+        return json({ error: 'Unauthorized.' }, { status: 401 });
+      }
+      try {
+        const list = await request.json();
+        if (!Array.isArray(list)) return json({ error: 'Expected an array.' }, { status: 400 });
+        const articles = list.map(normalizeSeoArticle).filter(item => item.slug && item.title && item.description && item.content);
+        const slugs = new Set();
+        let duplicateSlug = false;
+        articles.forEach(item => {
+          if (slugs.has(item.slug)) duplicateSlug = true;
+          slugs.add(item.slug);
+        });
+        if (duplicateSlug) {
+          return json({ error: 'SEO article slugs must be unique.' }, { status: 400 });
+        }
+        await env.NAV_KV.put('seoArticles', JSON.stringify(articles, null, 2));
+        return json({ ok: true, count: articles.length });
+      } catch (error) {
+        return json({ error: 'Invalid SEO article data.' }, { status: 400 });
+      }
+    }
+
+    if (pathname === '/seo' && request.method === 'POST') {
+      if (!requireAdmin(request, env)) {
+        return json({ error: 'Unauthorized.' }, { status: 401 });
+      }
+      try {
+        const item = normalizeSeoArticle(await request.json());
+        if (!item.slug || !item.title || !item.description || !item.content) {
+          return json({ error: 'Slug, title, description and content are required.' }, { status: 400 });
+        }
+        const list = await getSeoArticles(env);
+        const index = list.findIndex(article => article.id === item.id || article.slug === item.slug);
+        if (index >= 0) list[index] = item;
+        else list.push(item);
+        await env.NAV_KV.put('seoArticles', JSON.stringify(list.map(normalizeSeoArticle), null, 2));
+        return json({ ok: true, id: item.id, count: list.length });
+      } catch (error) {
+        return json({ error: 'Invalid SEO article data.' }, { status: 400 });
       }
     }
 
